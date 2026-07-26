@@ -3,10 +3,10 @@ from typing import Optional
 
 
 class Settings(BaseSettings):
-    openai_api_key: str
-    openai_base_url: str = "https://opencode.ai/zen/v1"
-    openai_model: str = "deepseek-v4-flash-free"
-    searxng_url: str = "http://searxng:8080"
+    openai_api_key: str = "not-needed"
+    openai_base_url: str = "http://localhost:9000/v1"
+    openai_model: str = "qwen3.5-4b"
+    searxng_url: str = "http://localhost:8888"
     database_url: str = "sqlite+aiosqlite:///./graphs.db"
     max_concurrent_fetches: int = 5
     max_pages_per_depth: int = 10

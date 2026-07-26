@@ -15,3 +15,5 @@ dist/
 *.iml
 .idea/
 crawl_results/
+results/
+.llm_key
