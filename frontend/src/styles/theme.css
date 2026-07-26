@@ -1,0 +1,48 @@
+:root {
+  --hpe-brand: #01a982;
+  --hpe-brand-hover: #068667;
+  --hpe-dark: #1d1f27;
+  --hpe-dark-card: #292d3a;
+  --hpe-light: #f7f7f7;
+  --hpe-white: #ffffff;
+  --hpe-bg: #ffffff;
+  --hpe-surface: #f0f2f5;
+  --hpe-hover: rgba(0, 0, 0, 0.06);
+  --hpe-text-primary: #1d1f27;
+  --hpe-text-body: #3e4550;
+  --hpe-text-secondary: #626e7a;
+  --hpe-text-weak: #7d8a92;
+  --hpe-text-on-dark: #ffffff;
+  --hpe-border: #d4d8db;
+  --hpe-border-strong: #3e4550;
+  --hpe-radius: 8px;
+  --hpe-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --hpe-shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --hpe-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  --hpe-transition: 200ms ease;
+
+  --node-person: #0070f8;
+  --node-organization: #01a982;
+  --node-product: #7764fc;
+  --node-location: #62e5f6;
+  --node-technology: #05cc93;
+  --edge-default: #b1b9be;
+}
+
+[data-theme="dark"] {
+  --hpe-light: #13151b;
+  --hpe-white: #1d1f27;
+  --hpe-bg: #1d1f27;
+  --hpe-surface: #292d3a;
+  --hpe-hover: rgba(255, 255, 255, 0.08);
+  --hpe-text-primary: #e8eaed;
+  --hpe-text-body: #c4c9ce;
+  --hpe-text-secondary: #9aa0a6;
+  --hpe-text-weak: #6b7580;
+  --hpe-border: #3e4550;
+  --hpe-border-strong: #5a6572;
+  --hpe-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --hpe-shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.5);
+
+  --edge-default: #5a6572;
+}

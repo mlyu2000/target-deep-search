@@ -1,0 +1,49 @@
+.header {
+  background: var(--hpe-dark);
+  padding: 0;
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-title {
+  color: var(--hpe-text-on-dark);
+  font-size: 1.25rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-icon {
+  color: var(--hpe-brand);
+  font-size: 1.5rem;
+}
+
+.header-accent {
+  height: 2px;
+  background: linear-gradient(90deg, var(--hpe-brand), transparent);
+}
+
+.theme-toggle {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.2rem;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  line-height: 1;
+}
+
+.theme-toggle:hover {
+  border-color: var(--hpe-brand);
+  color: var(--hpe-brand);
+}

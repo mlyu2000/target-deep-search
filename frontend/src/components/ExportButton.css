@@ -1,0 +1,26 @@
+.export-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--hpe-radius);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--hpe-transition);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+}
+
+.export-button:hover {
+  border-color: var(--hpe-brand);
+  color: var(--hpe-brand);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.export-icon {
+  font-size: 1rem;
+}

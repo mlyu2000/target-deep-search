@@ -1,0 +1,57 @@
+use_default_settings: true
+
+general:
+  instance_name: "Target Deep Search"
+  debug: false
+  privacypolicy_url: false
+  contact_url: false
+  enable_metrics: false
+
+search:
+  safe_search: 0
+  autocomplete: ""
+  languages:
+    - en
+  formats:
+    - html
+    - json
+
+server:
+  secret_key: "change-me-in-production"
+  bind_address: "0.0.0.0"
+  port: 8080
+  limiter: false
+  image_proxy: true
+  method: "GET"
+
+ui:
+  static_use_hash: true
+  default_theme: simple
+  default_locale: en
+  center_alignment: true
+
+engines:
+  - name: duckduckgo
+    disabled: false
+  - name: duckduckgo images
+    disabled: false
+  - name: wikipedia
+    disabled: false
+  - name: bing
+    disabled: false
+  - name: brave
+    disabled: false
+  - name: startpage
+    disabled: false
+  - name: google
+    disabled: true
+  - name: google images
+    disabled: true
+
+outgoing:
+  request_timeout: 20.0
+  max_request_timeout: 30.0
+  useragent_suffix: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
+  verify: false
+  max_connection_retries: 3
+  retry_on_http_error: true

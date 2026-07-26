@@ -1,0 +1,54 @@
+services:
+  searxng:
+    image: searxng/searxng:latest
+    container_name: target-deep-search-searxng
+    volumes:
+      - ./searxng/settings.yml:/etc/searxng/settings.yml:ro
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/search?q=health&format=json')"]
+      interval: 30s
+      timeout: 10s
+      retries: 15
+      start_period: 30s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: target-deep-search-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env.docker
+    volumes:
+      - backend-data:/app/data
+    depends_on:
+      searxng:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: target-deep-search-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+    restart: unless-stopped
+
+volumes:
+  backend-data:
+  searxng-data:
+
+networks:
+  app-network:
+    driver: bridge

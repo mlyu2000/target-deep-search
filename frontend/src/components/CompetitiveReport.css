@@ -1,0 +1,71 @@
+.compete-report {
+  padding: 20px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.compete-summary {
+  background: color-mix(in srgb, var(--hpe-brand) 10%, transparent);
+  border-left: 3px solid var(--hpe-brand);
+  padding: 12px 16px;
+  border-radius: 0 8px 8px 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 20px;
+  color: var(--hpe-text-primary);
+}
+
+.compete-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.compete-section-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 8px;
+  color: var(--hpe-text-primary);
+}
+
+.compete-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+}
+
+.compete-card {
+  background: var(--hpe-surface);
+  border: 1px solid var(--hpe-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.compete-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.compete-card-name {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--hpe-text-primary);
+}
+
+.compete-badge {
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--hpe-bg);
+  color: var(--hpe-text-weak);
+  white-space: nowrap;
+}
+
+.compete-card-desc {
+  font-size: 0.78rem;
+  color: var(--hpe-text-secondary);
+  margin-top: 4px;
+  line-height: 1.4;
+}

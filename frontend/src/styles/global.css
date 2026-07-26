@@ -1,0 +1,222 @@
+@import './theme.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  height: 100%;
+}
+
+body {
+  font-family: var(--hpe-font);
+  color: var(--hpe-text-body);
+  background-color: var(--hpe-light);
+  line-height: 1.5;
+  min-height: 100vh;
+  height: 100%;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--hpe-text-primary);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+a {
+  color: var(--hpe-brand);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--hpe-brand-hover);
+}
+
+button {
+  cursor: pointer;
+  font-family: var(--hpe-font);
+  border: none;
+  outline: none;
+}
+
+input, select, textarea {
+  font-family: var(--hpe-font);
+  font-size: 1rem;
+}
+
+#root {
+  min-height: 100vh;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* App layout - no browser scrollbar */
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  height: 100%;
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.app-header-section {
+  background: var(--hpe-dark);
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.app-subtitle {
+  color: #fff;
+  font-size: 1.4rem;
+  font-weight: 500;
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  text-align: center;
+  max-width: 800px;
+}
+
+.app-controls-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.app-content-section {
+  flex: 1;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.app-content-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.app-empty-state {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--hpe-text-weak);
+  font-size: 1.1rem;
+  padding: 24px;
+}
+
+.app-building-state {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--hpe-text-weak);
+  font-size: 1rem;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px;
+}
+
+.loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--hpe-border);
+  border-top-color: var(--hpe-brand);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.app-report-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--hpe-border);
+  background: var(--hpe-surface);
+  padding: 0 16px;
+}
+
+.app-report-tabs button {
+  padding: 10px 20px;
+  border: none;
+  background: transparent;
+  color: var(--hpe-text-secondary);
+  font-weight: 400;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+}
+
+.app-report-tabs button:hover {
+  color: var(--hpe-brand);
+}
+
+.app-report-tabs button.active {
+  background: var(--hpe-bg);
+  color: var(--hpe-brand);
+  font-weight: 600;
+  border-bottom-color: var(--hpe-brand);
+}
+
+.app-graph-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.app-export-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+}
+
+.app-report-container {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--hpe-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--hpe-text-weak);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
