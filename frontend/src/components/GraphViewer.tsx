@@ -8,6 +8,8 @@ interface GraphViewerProps {
   data: GraphData
   onNodeClick: (node: Node) => void
   selectedNodeId: string | null
+  activeTypes?: Set<string>
+  onToggleType?: (type: string) => void
 }
 
 interface SimNode extends d3.SimulationNodeDatum {
@@ -25,7 +27,7 @@ interface SimLink extends d3.SimulationLinkDatum<SimNode> {
   description: string
 }
 
-export default function GraphViewer({ data, onNodeClick, selectedNodeId }: GraphViewerProps) {
+export default function GraphViewer({ data, onNodeClick, selectedNodeId, activeTypes, onToggleType }: GraphViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const svgRef = useRef<SVGSVGElement>(null)
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
@@ -52,17 +54,23 @@ export default function GraphViewer({ data, onNodeClick, selectedNodeId }: Graph
 
     const nodeMap = new Map(data.nodes.map((n) => [n.id, n]))
 
-    const nodes: SimNode[] = data.nodes.map((n) => ({
-      id: n.id,
-      name: n.name,
-      type: n.type as EntityType,
-      mention_count: n.mention_count,
-      images: n.images,
-      description: n.description,
-    }))
+    const visibleTypes = activeTypes ?? new Set(data.nodes.map((n) => n.type))
+    const isVisible = (type: string) => visibleTypes.has(type)
+
+    const nodes: SimNode[] = data.nodes
+      .filter((n) => isVisible(n.type))
+      .map((n) => ({
+        id: n.id,
+        name: n.name,
+        type: n.type as EntityType,
+        mention_count: n.mention_count,
+        images: n.images,
+        description: n.description,
+      }))
 
     const links: SimLink[] = data.edges
       .filter((e) => nodeMap.has(e.source) && nodeMap.has(e.target))
+      .filter((e) => isVisible(nodeMap.get(e.source)!.type) && isVisible(nodeMap.get(e.target)!.type))
       .map((e) => ({
         source: e.source,
         target: e.target,
@@ -193,18 +201,27 @@ export default function GraphViewer({ data, onNodeClick, selectedNodeId }: Graph
 
   useEffect(() => {
     drawGraph()
-  }, [drawGraph])
+  }, [data, dimensions, onNodeClick, selectedNodeId, activeTypes])
 
   return (
     <div ref={containerRef} className="graph-container">
       <svg ref={svgRef} width={dimensions.width} height={dimensions.height} />
       <div className="graph-legend">
-        {(Object.entries(ENTITY_COLORS) as [EntityType, string][]).map(([type, color]) => (
-          <span key={type} className="graph-legend-item">
-            <span className="graph-legend-dot" style={{ backgroundColor: color }} />
-            {type}
-          </span>
-        ))}
+        {(Object.entries(ENTITY_COLORS) as [EntityType, string][]).map(([type, color]) => {
+          const active = !activeTypes || activeTypes.has(type)
+          return (
+            <button
+              key={type}
+              type="button"
+              className={`graph-legend-item${active ? '' : ' inactive'}`}
+              onClick={() => onToggleType?.(type)}
+              title={active ? `Hide ${type}` : `Show ${type}`}
+            >
+              <span className="graph-legend-dot" style={{ backgroundColor: color }} />
+              {type}
+            </button>
+          )
+        })}
       </div>
     </div>
   )

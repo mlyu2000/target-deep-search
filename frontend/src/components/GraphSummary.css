@@ -1,0 +1,125 @@
+.gsum-report {
+  padding: 20px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.gsum-summary {
+  background: color-mix(in srgb, var(--hpe-brand) 10%, transparent);
+  border-left: 3px solid var(--hpe-brand);
+  padding: 12px 16px;
+  border-radius: 0 8px 8px 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 20px;
+  color: var(--hpe-text-primary);
+}
+
+.gsum-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.gsum-section-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 10px;
+  color: var(--hpe-text-primary);
+}
+
+.gsum-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gsum-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+}
+
+.gsum-bar-label {
+  width: 90px;
+  text-transform: capitalize;
+  color: var(--hpe-text-body);
+  flex-shrink: 0;
+}
+
+.gsum-bar-track {
+  flex: 1;
+  height: 10px;
+  background: var(--hpe-hover);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.gsum-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 5px;
+}
+
+.gsum-bar-count {
+  width: 28px;
+  text-align: right;
+  color: var(--hpe-text-secondary);
+}
+
+.gsum-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+}
+
+.gsum-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--hpe-surface);
+  border: 1px solid var(--hpe-border);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.gsum-card-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.gsum-card-name {
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: var(--hpe-text-primary);
+  flex: 1;
+}
+
+.gsum-card-degree {
+  font-size: 0.72rem;
+  color: var(--hpe-text-weak);
+  white-space: nowrap;
+}
+
+.gsum-rel-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gsum-rel-chip {
+  background: var(--hpe-surface);
+  border: 1px solid var(--hpe-border);
+  border-radius: 16px;
+  padding: 4px 12px;
+  font-size: 0.78rem;
+  color: var(--hpe-text-body);
+  text-transform: capitalize;
+}
+
+.gsum-rel-chip b {
+  color: var(--hpe-brand);
+}

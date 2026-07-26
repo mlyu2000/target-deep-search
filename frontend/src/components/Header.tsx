@@ -3,15 +3,27 @@ import './Header.css'
 
 export default function Header() {
   const [dark, setDark] = useState(() => {
-    const saved = localStorage.getItem('theme')
-    if (saved) return saved === 'dark'
-    try { return window.matchMedia('(prefers-color-scheme: dark)').matches }
-    catch { return false }
+    try {
+      const saved = typeof localStorage !== 'undefined' ? localStorage.getItem('theme') : null
+      if (saved) return saved === 'dark'
+      if (typeof window !== 'undefined' && window.matchMedia) {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches
+      }
+    } catch {
+      /* ignore storage/access errors */
+    }
+    return false
   })
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light')
-    localStorage.setItem('theme', dark ? 'dark' : 'light')
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('theme', dark ? 'dark' : 'light')
+      }
+    } catch {
+      /* ignore storage errors */
+    }
   }, [dark])
 
   return (

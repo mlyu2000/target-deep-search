@@ -12,6 +12,7 @@ import ExportButton from './components/ExportButton'
 import SessionList from './components/SessionList'
 import CompetitiveReport from './components/CompetitiveReport'
 import SupplyChainView from './components/SupplyChainView'
+import GraphSummary from './components/GraphSummary'
 import { buildGraph, analyzeGraph, getResult, connectStatusStream, listSessions } from './api/client'
 import type { GraphData, Node, Session, StatusUpdate, StageInfo, AnalyzerMode, CompetitiveReport as CompReport, SupplyChainReport } from './types'
 
@@ -29,6 +30,7 @@ export default function App() {
   const [selectedNode, setSelectedNode] = useState<Node | null>(null)
   const [sessions, setSessions] = useState<Session[]>([])
   const [reportTab, setReportTab] = useState<'graph' | 'report'>('graph')
+  const [activeTypes, setActiveTypes] = useState<Set<string> | null>(null)
   const [logs, setLogs] = useState<LogEntry[]>([])
   const cancelSse = useRef<(() => void) | null>(null)
 
@@ -43,6 +45,19 @@ export default function App() {
     return () => {
       if (cancelSse.current) cancelSse.current()
     }
+  }, [])
+
+  const toggleType = useCallback((type: string) => {
+    setActiveTypes((prev) => {
+      const all = new Set<string>(['person', 'organization', 'product', 'location', 'technology'])
+      const current = prev ?? all
+      const next = new Set(current)
+      if (next.has(type)) next.delete(type)
+      else next.add(type)
+      // If all types are active again, treat as "no filter"
+      if (next.size === all.size) return null
+      return next.size === 0 ? new Set<string>() : next
+    })
   }, [])
 
   const handleSearch = useCallback(async (searchTarget: string, searchDepth: number, searchMode: AnalyzerMode) => {
@@ -83,6 +98,8 @@ export default function App() {
           try {
             const result = await getResult(task_id)
             setGraphData(result)
+            setActiveTypes(null)
+            setReportTab('graph')
             setStatus(result.error ? 'error' : 'complete')
             if (result.error) {
               setStatusMessage(result.error)
@@ -141,7 +158,7 @@ export default function App() {
   }, [])
 
   const hasReport = graphData?.report && (graphData.report_type === 'competitive' || graphData.report_type === 'supplychain')
-  const showGraph = graphData && (reportTab === 'graph' || !hasReport)
+  const showGraph = !!graphData && reportTab === 'graph'
 
   return (
     <>
@@ -203,7 +220,7 @@ export default function App() {
               </div>
             )}
 
-            {graphData && hasReport && (
+            {graphData && (
               <div className="app-report-tabs">
                 <button
                   onClick={() => setReportTab('graph')}
@@ -222,6 +239,8 @@ export default function App() {
                   data={graphData}
                   onNodeClick={setSelectedNode}
                   selectedNodeId={selectedNode?.id ?? null}
+                  activeTypes={activeTypes ?? undefined}
+                  onToggleType={toggleType}
                 />
                 {taskId && (
                   <div className="app-export-btn">
@@ -240,6 +259,12 @@ export default function App() {
             {graphData && reportTab === 'report' && graphData.report_type === 'supplychain' && graphData.report && (
               <div className="app-report-container">
                 <SupplyChainView report={graphData.report as unknown as SupplyChainReport} />
+              </div>
+            )}
+
+            {graphData && reportTab === 'report' && (!hasReport) && (
+              <div className="app-report-container">
+                <GraphSummary data={graphData} />
               </div>
             )}
 

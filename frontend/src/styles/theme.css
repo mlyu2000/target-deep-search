@@ -21,6 +21,9 @@
   --hpe-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
   --hpe-transition: 200ms ease;
 
+  --hpe-header-bg: #1d1f27;
+  --hpe-header-text: #ffffff;
+
   --node-person: #0070f8;
   --node-organization: #01a982;
   --node-product: #7764fc;
@@ -43,6 +46,10 @@
   --hpe-border-strong: #5a6572;
   --hpe-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
   --hpe-shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.5);
+
+  --hpe-header-bg: var(--hpe-surface);
+  --hpe-header-text: var(--hpe-text-primary);
+  --hpe-header-accent: var(--hpe-brand);
 
   --edge-default: #5a6572;
 }
