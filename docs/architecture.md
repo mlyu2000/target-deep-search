@@ -8,9 +8,9 @@ Web app that crawls the internet for a user-specified target entity, uses LLM to
 
 ```
 Frontend (React + D3) ──HTTP──> Backend (FastAPI) ──> SearXNG (Docker)
-                                        │
-                                        └──> LLM API (opencode.ai/zen)
-                                               Model: deepseek-v4-flash-free
+                                         │
+                                         └──> LLM API (integrate.api.nvidia.com)
+                                                Model: nvidia/nemotron-3-nano-30b-a3b
 ```
 
 ## Services
@@ -42,7 +42,14 @@ Single SQLite table `sessions`: `{id, target, depth, status, error_msg, created_
 - **Single JSON blob** for graph data: simpler than relational node/edge tables for MVP
 - **SSE streaming**: real-time status updates during long-running graph builds
 - **Async parallel crawling**: `asyncio.Semaphore(5)` limits concurrent HTTP fetches
-- **HPE Design System**: colors derived from `design-system.hpe.design`
+- **Combined extraction**: All content sources concatenated into a single LLM call per depth level for richer cross-source context
+- **Model**: NVIDIA nemotron-3-nano via `integrate.api.nvidia.com/v1` — fast response (~3s) with reliable JSON output when prompted with "No thinking, no reasoning"
+- **SearXNG engines**: Bing + Brave + Wikipedia (DuckDuckGo/Startpage blocked by CAPTCHA; Google CSE suspended)
+- **Parser robustness**: Handles multiple JSON formats (object with entities/relationships keys, raw arrays, subject/object/predicate fields, NER-style types like ORG/PERSON/LOC)
+- **Retry strategy**: 3 attempts with 5s/20s exponential backoff; falls back to shorter text on empty responses
+- **Curly-brace escaping**: Web page text with `{`/`}` (CSS, JSON inline) escaped before `str.format()`
+- **SSL bypass**: All outbound HTTPS clients configured with `verify=False` / `CERT_NONE` for Zscaler proxy compatibility
+- **Background generation removed**: Model returns empty for non-JSON prose prompts
 - **Image analysis**: images are collected as metadata; LLM vision support is optional
 
 ## Color System (HPE-Inspired)
@@ -86,13 +93,13 @@ target-deep-search/
 │       ├── __init__.py
 │       ├── conftest.py           # Shared fixtures
 │       ├── test_config.py        # 3 tests
-│       ├── test_database.py      # 9 tests
-│       ├── test_schemas.py       # 12 tests
+│       ├── test_database.py      # 8 tests
+│       ├── test_schemas.py       # 17 tests
 │       ├── test_crawler.py       # 13 tests
 │       ├── test_image_analyzer.py # 8 tests
 │       ├── test_llm_service.py   # 16 tests
-│       ├── test_graph_builder.py # 9 tests
-│       ├── test_graph_router.py  # 7 tests
+│       ├── test_graph_builder.py # 10 tests
+│       ├── test_graph_router.py  # 8 tests
 │       └── test_sessions_router.py # 7 tests
 ├── frontend/
 │   ├── Dockerfile                # Multi-stage: node build → nginx serve
@@ -134,4 +141,4 @@ target-deep-search/
     └── test-plan.md               # Test results
 ```
 
-## Total Tests: 110 (88 backend + 22 frontend)
+## Total Tests: 112 (90 backend + 22 frontend)

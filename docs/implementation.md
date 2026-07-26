@@ -55,8 +55,29 @@
 | `components/ExportButton.tsx` | 8 | done | JSON download |
 | `components/SessionList.tsx` | 8 | done | Saved sessions |
 
+## Key Changes (2026-07-26)
+
+| Change | Before | After |
+|--------|--------|-------|
+| LLM endpoint | `opencode.ai/zen/v1` | `integrate.api.nvidia.com/v1` |
+| LLM model | `deepseek-v4-flash-free` (unreliable) | `nvidia/nemotron-3-nano-30b-a3b` (~3s response) |
+| Extraction approach | Per-source parallel LLM calls | Single combined extraction per depth level |
+| Extraction prompt rule 5 | "Minimum 2 entities" | "Aim for at least 10 entities" |
+| Text truncation | 15000 chars | 8000 chars |
+| Crawler timeout | 10s | 30s |
+| LLM timeout | 120s | 180s |
+| SearXNG engines | Wikipedia only (DDG/Startpage blocked) | Bing + Brave + Wikipedia |
+| System prompt | "Always respond with valid JSON only" | + "No thinking, no reasoning" |
+| `_parse_response` format | Fixed `entities`/`relationships` object | Handles arrays, `nodes`/`edges` keys, `subject`/`object`/`predicate` fields, NER types (ORG/PERSON/LOC) |
+| `_parse_response` fallback | Trailing comma cleanup only | Progressive trim + `raw_decode` fallback |
+| Curly-brace handling | None (crashed on page text with `{}`) | `{`→`{{`, `}`→`}}` before `str.format()` |
+| Background generation | Yes | Removed (model returns empty for prose) |
+| Backend tests | 91 | 90 (2 updated for new defaults + parser) |
+| Frontend bugs | SSE leaks, session load, build log entries | Fixed stale connection cleanup, proper refresh, descriptive entries |
+
 ## Known Issues / Technical Debt
 
+- **Model reliability**: NVIDIA nemotron-3-nano occasionally ignores the "No thinking" instruction and outputs reasoning text instead of JSON (~1/3 of large prompts). Retry logic handles this with text shortening.
 - GraphBuilder unit tests use mocks for crawler/LLM — integration tests with real SearXNG would be valuable
 - Image analysis is metadata-only (no vision LLM integration in MVP)
 - No user authentication (single-user desktop app)

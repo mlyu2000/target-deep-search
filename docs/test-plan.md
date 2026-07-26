@@ -11,14 +11,20 @@
 
 | Category | Total | Passed | Failed |
 |----------|-------|--------|--------|
-| Backend Unit Tests | 91 | 91 | 0 |
+| Backend Unit Tests | 90 | 90 | 0 |
 | Frontend Unit Tests | 22 | 22 | 0 |
 | Integration Tests | 0 | 0 | 0 |
 | System Tests (E2E) | 0 | 0 | 0 |
 | User Acceptance Tests | 0 | 0 | 0 |
-| **Total** | **113** | **113** | **0** |
+| **Total** | **112** | **112** | **0** |
 
-> Note: Integration, System, and UAT tests require Docker Compose running. See "Running Tests" section. > **SSL Fix (2026-07-26)**: SSL verification disabled for all outbound HTTPS clients (OpenAI SDK via `httpx.AsyncClient(verify=False)`, aiohttp via `ssl.CERT_NONE` context) to work with Zscaler corporate SSL interception proxy.
+> Note: Integration, System, and UAT tests require Docker Compose running. See "Running Tests" section.
+> 
+> **SSL Fix (2026-07-26)**: SSL verification disabled for all outbound HTTPS clients (OpenAI SDK via `httpx.AsyncClient(verify=False)`, aiohttp via `ssl.CERT_NONE` context) to work with Zscaler corporate SSL interception proxy.
+> 
+> **NVIDIA Model (2026-07-26)**: Switched from `deepseek-v4-flash-free` (opencode.ai/zen — returns empty for most prompts) to `nvidia/nemotron-3-nano-30b-a3b` (integrate.api.nvidia.com/v1). System prompt requires "No thinking, no reasoning" to suppress the model's reasoning mode. Average response: ~3s for extraction prompts.
+> 
+> **Combined Extraction (2026-07-26)**: Changed from per-source parallel LLM calls to a single combined extraction call per depth level. All source texts concatenated with `[Source N: type]` markers. Extracts 19+ nodes per depth level (vs 3 with old approach). Text truncated at 8000 chars with `{`/`}` escaping for safe `str.format()`.
 
 ## Backend Test Results
 
@@ -57,8 +63,13 @@
 | Valid NodeSchema | ✅ |
 | NodeSchema invalid type | ✅ |
 | NodeSchema with images | ✅ |
-| EdgeSchema valid/strength/default | ✅ |
-| GraphResponse valid/error | ✅ |
+| NodeSchema mention count default | ✅ |
+| Valid EdgeSchema | ✅ |
+| EdgeSchema strength out of range (low) | ✅ |
+| EdgeSchema strength out of range (high) | ✅ |
+| EdgeSchema default strength | ✅ |
+| GraphResponse valid | ✅ |
+| GraphResponse error field | ✅ |
 
 ### UT-B4: Crawler (`test_crawler.py`) — 13/13 ✅
 
@@ -232,12 +243,15 @@ curl -X POST http://localhost/api/graph/build -H "Content-Type: application/json
 
 ## Pre-Release Checklist
 
-- [x] All backend unit tests pass (91/91)
+- [x] All backend unit tests pass (90/90)
 - [x] All frontend unit tests pass (22/22)
 - [x] All UI user flow tests pass (10/10)
 - [x] All depth 3 coverage tests pass (8/8)
 - [x] SSL verification disabled (Zscaler proxy compatibility)
+- [x] NVIDIA nemotron-3-nano model verified (19 nodes / 14 edges extraction)
+- [x] SearXNG Bing + Brave engines enabled (DuckDuckGo/Startpage blocked by CAPTCHA)
+- [x] Combined extraction verified (9 sources → single LLM call → 19+ entities)
+- [x] `docker compose up --build` smoke test
 - [ ] Integration tests pass (requires Docker)
 - [ ] E2E Playwright tests pass (requires Docker)
 - [ ] UAT manual walkthrough complete
-- [ ] `docker compose up --build` smoke test
