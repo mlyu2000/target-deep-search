@@ -197,7 +197,7 @@ export default function GraphViewer({ data, onNodeClick, selectedNodeId, activeT
       nodeGroup.attr('transform', (d) => `translate(${d.x},${d.y})`)
     })
 
-  }, [data, dimensions, onNodeClick, selectedNodeId])
+  }, [data, dimensions, onNodeClick, selectedNodeId, activeTypes])
 
   useEffect(() => {
     drawGraph()

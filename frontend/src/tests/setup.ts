@@ -17,3 +17,14 @@ if (typeof window !== 'undefined' && !window.matchMedia) {
     configurable: true,
   })
 }
+
+// jsdom lacks ResizeObserver; provide a no-op stub so graph components can mount.
+if (typeof globalThis.ResizeObserver === 'undefined') {
+  class RO {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  }
+  // @ts-ignore test stub
+  globalThis.ResizeObserver = RO
+}
