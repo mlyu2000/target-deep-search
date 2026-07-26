@@ -15,14 +15,14 @@ services:
       start_period: 30s
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: eric021122/target-deep-search-backend:latest
     container_name: target-deep-search-backend
     ports:
       - "8000:8000"
     env_file:
       - ./backend/.env.docker
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - backend-data:/app/data
     depends_on:
@@ -33,9 +33,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: eric021122/target-deep-search-frontend:latest
     container_name: target-deep-search-frontend
     ports:
       - "80:80"
