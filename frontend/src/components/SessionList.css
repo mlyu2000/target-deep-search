@@ -1,6 +1,6 @@
 .session-list {
   width: 240px;
-  background: var(--hpe-white);
+  background: var(--hpe-surface);
   border-right: 1px solid var(--hpe-border);
   display: flex;
   flex-direction: column;
@@ -8,12 +8,33 @@
   flex-shrink: 0;
 }
 
-.session-list-title {
+.session-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 16px 16px 8px;
+}
+
+.session-list-title {
+  margin: 0;
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--hpe-text-weak);
+}
+
+.session-list-clear {
+  background: var(--hpe-surface-alt);
+  border: 1px solid var(--hpe-border);
+  color: var(--hpe-text-primary);
+  border-radius: var(--hpe-radius);
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: border-color var(--hpe-transition);
+}
+.session-list-clear:hover {
+  border-color: var(--hpe-brand);
 }
 
 .session-list-empty {
@@ -39,7 +60,7 @@
 }
 
 .session-item:hover {
-  background: var(--hpe-light);
+  background: var(--hpe-surface-alt);
 }
 
 .session-item-info {

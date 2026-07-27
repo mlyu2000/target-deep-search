@@ -120,4 +120,19 @@ describe('GraphViewer legend filter', () => {
     fireEvent.click(resetBtn)
     expect(onReset).toHaveBeenCalledTimes(1)
   })
+
+  it('keeps the target entity visible even when its type is filtered out', async () => {
+    // Hide every type except 'technology'; the target (TestCo, an organization)
+    // must remain on the chart regardless of its type being filtered out.
+    const { container } = render(
+      <GraphViewer
+        data={mockData}
+        onNodeClick={() => {}}
+        selectedNodeId={null}
+        activeTypes={new Set(['technology'])}
+      />,
+    )
+    await waitFor(() => expect(countCircles(container)).toBeGreaterThan(0))
+    expect(countCircles(container)).toBe(1) // only the pinned TestCo target
+  })
 })

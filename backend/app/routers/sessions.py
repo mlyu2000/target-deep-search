@@ -34,6 +34,16 @@ async def list_sessions(db: AsyncSession = Depends(get_db)):
     )
 
 
+@router.delete("/sessions")
+async def clear_sessions(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(SessionModel))
+    sessions = result.scalars().all()
+    for s in sessions:
+        await db.delete(s)
+    await db.commit()
+    return {"ok": True, "deleted": len(sessions)}
+
+
 @router.delete("/sessions/{session_id}")
 async def delete_session(session_id: str, db: AsyncSession = Depends(get_db)):
     session = await db.get(SessionModel, session_id)

@@ -156,6 +156,16 @@ export default function App() {
     setSessions(res.sessions)
   }, [])
 
+  const handleClearSessions = useCallback(async () => {
+    const { clearSessions } = await import('./api/client')
+    await clearSessions()
+    setSessions([])
+    setGraphData(null)
+    setStatus('idle')
+    setActiveView('graph')
+    setActiveTypes(null)
+  }, [])
+
   return (
     <>
       <Header />
@@ -186,6 +196,7 @@ export default function App() {
           <SessionList
             sessions={sessions}
             onSelect={handleLoadSession}
+            onClear={handleClearSessions}
             onDelete={async (id) => {
               const { deleteSession } = await import('./api/client')
               await deleteSession(id)
@@ -243,7 +254,11 @@ export default function App() {
                         totalCount={graphData.nodes.length}
                         visibleCount={
                           activeTypes
-                            ? graphData.nodes.filter((n) => activeTypes.has(n.type)).length
+                            ? graphData.nodes.filter(
+                                (n) =>
+                                  activeTypes.has(n.type) ||
+                                  n.name.trim().toLowerCase() === graphData.target.trim().toLowerCase(),
+                              ).length
                             : graphData.nodes.length
                         }
                       />

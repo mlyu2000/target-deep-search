@@ -57,11 +57,21 @@ export default function GraphViewer({ data, onNodeClick, selectedNodeId, activeT
 
     const nodeMap = new Map(data.nodes.map((n) => [n.id, n]))
 
+    // The searched target entity must always remain visible, even when its
+    // type is filtered out, so it stays on the chart. Edges are only drawn
+    // between nodes that are actually rendered (target's relationships to
+    // still-visible entities remain; those to hidden entities drop cleanly).
+    const targetKey = data.target.trim().toLowerCase()
+    const targetId = data.nodes.find((n) => n.name.trim().toLowerCase() === targetKey)?.id
+
     const visibleTypes = activeTypes ?? new Set(data.nodes.map((n) => n.type))
     const isVisible = (type: string) => visibleTypes.has(type)
+    const isPinned = (id: string) => targetId !== undefined && id === targetId
+
+    const isNodeShown = (n: { id: string; type: string }) => isVisible(n.type) || isPinned(n.id)
 
     const nodes: SimNode[] = data.nodes
-      .filter((n) => isVisible(n.type))
+      .filter(isNodeShown)
       .map((n) => ({
         id: n.id,
         name: n.name,
@@ -72,8 +82,11 @@ export default function GraphViewer({ data, onNodeClick, selectedNodeId, activeT
       }))
 
     const links: SimLink[] = data.edges
-      .filter((e) => nodeMap.has(e.source) && nodeMap.has(e.target))
-      .filter((e) => isVisible(nodeMap.get(e.source)!.type) && isVisible(nodeMap.get(e.target)!.type))
+      .filter((e) => {
+        const s = nodeMap.get(e.source)
+        const t = nodeMap.get(e.target)
+        return s && t && isNodeShown(s) && isNodeShown(t)
+      })
       .map((e) => ({
         source: e.source,
         target: e.target,

@@ -5,6 +5,7 @@ interface SessionListProps {
   sessions: Session[]
   onSelect: (id: string) => void
   onDelete: (id: string) => void
+  onClear: () => void
 }
 
 function formatDate(dateStr: string): string {
@@ -16,12 +17,25 @@ function formatDate(dateStr: string): string {
   }
 }
 
-export default function SessionList({ sessions, onSelect, onDelete }: SessionListProps) {
+export default function SessionList({ sessions, onSelect, onDelete, onClear }: SessionListProps) {
   return (
     <aside className="session-list">
-      <h3 className="session-list-title">Saved</h3>
+      <div className="session-list-header">
+        <h3 className="session-list-title">History</h3>
+        {sessions.length > 0 && (
+          <button
+            className="session-list-clear"
+            onClick={() => {
+              if (confirm('Clear all search history?')) onClear()
+            }}
+            title="Clear all history"
+          >
+            Clear
+          </button>
+        )}
+      </div>
       {sessions.length === 0 ? (
-        <p className="session-list-empty">No saved sessions yet</p>
+        <p className="session-list-empty">No history yet</p>
       ) : (
         <ul className="session-items">
           {sessions.map((s) => (

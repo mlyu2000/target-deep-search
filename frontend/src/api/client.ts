@@ -82,6 +82,10 @@ export async function listSessions(): Promise<{ sessions: Session[] }> {
   return request<{ sessions: Session[] }>('/sessions')
 }
 
+export async function clearSessions(): Promise<{ ok: boolean; deleted: number }> {
+  return request<{ ok: boolean; deleted: number }>('/sessions', { method: 'DELETE' })
+}
+
 export async function deleteSession(id: string): Promise<{ ok: boolean }> {
   return request<{ ok: boolean }>(`/sessions/${id}`, { method: 'DELETE' })
 }
