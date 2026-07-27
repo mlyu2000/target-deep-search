@@ -2,6 +2,7 @@ import { useRef, useEffect, useState, useCallback } from 'react'
 import * as d3 from 'd3'
 import type { GraphData, Node, Edge } from '../types'
 import { ENTITY_COLORS, type EntityType } from '../types'
+import { buildKolReport } from '../analysis/kol'
 import './GraphViewer.css'
 
 interface GraphViewerProps {
@@ -13,6 +14,7 @@ interface GraphViewerProps {
   onResetFilters?: () => void
   totalCount?: number
   visibleCount?: number
+  highlightKOLs?: boolean
 }
 
 interface SimNode extends d3.SimulationNodeDatum {
@@ -30,7 +32,7 @@ interface SimLink extends d3.SimulationLinkDatum<SimNode> {
   description: string
 }
 
-export default function GraphViewer({ data, onNodeClick, selectedNodeId, activeTypes, onToggleType, onResetFilters, totalCount, visibleCount }: GraphViewerProps) {
+export default function GraphViewer({ data, onNodeClick, selectedNodeId, activeTypes, onToggleType, onResetFilters, totalCount, visibleCount, highlightKOLs }: GraphViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const svgRef = useRef<SVGSVGElement>(null)
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
@@ -152,11 +154,25 @@ export default function GraphViewer({ data, onNodeClick, selectedNodeId, activeT
       .join('g')
       .style('cursor', 'pointer')
 
+    // KOL highlight: top-K most influential nodes get a larger radius + gold ring.
+    const kolTopIds = highlightKOLs
+      ? new Set(buildKolReport(data, 5).ranked.map((k) => k.id))
+      : new Set<string>()
+
+    const radiusOf = (d: SimNode) => {
+      const base = Math.max(12, Math.min(30, 10 + d.mention_count * 2))
+      return kolTopIds.has(d.id) ? Math.min(38, base + 8) : base
+    }
+
     nodeGroup.append('circle')
-      .attr('r', (d) => Math.max(12, Math.min(30, 10 + d.mention_count * 2)))
+      .attr('r', (d) => radiusOf(d))
       .attr('fill', (d) => ENTITY_COLORS[d.type] || 'var(--hpe-text-weak)')
-      .attr('stroke', (d) => d.id === selectedNodeId ? 'var(--hpe-white)' : 'none')
-      .attr('stroke-width', 3)
+      .attr('stroke', (d) => {
+        if (d.id === selectedNodeId) return 'var(--hpe-white)'
+        if (kolTopIds.has(d.id)) return '#ffb020'
+        return 'none'
+      })
+      .attr('stroke-width', (d) => (d.id === selectedNodeId ? 3 : kolTopIds.has(d.id) ? 3 : 0))
       .attr('opacity', (d) => (selectedNodeId && d.id !== selectedNodeId) ? 0.3 : 1)
 
     nodeGroup.filter((d) => (d.images?.length ?? 0) > 0)
@@ -170,7 +186,7 @@ export default function GraphViewer({ data, onNodeClick, selectedNodeId, activeT
 
     nodeGroup.append('text')
       .text((d) => d.name)
-      .attr('dx', (d) => Math.max(12, Math.min(30, 10 + d.mention_count * 2)) + 6)
+      .attr('dx', (d) => radiusOf(d) + 6)
       .attr('dy', 4)
       .attr('font-size', '11px')
       .attr('fill', (d) => selectedNodeId && d.id !== selectedNodeId ? 'var(--hpe-text-weak)' : 'var(--hpe-text-primary)')
@@ -213,11 +229,11 @@ export default function GraphViewer({ data, onNodeClick, selectedNodeId, activeT
       nodeGroup.attr('transform', (d) => `translate(${d.x},${d.y})`)
     })
 
-  }, [data, dimensions, onNodeClick, selectedNodeId, activeTypes])
+  }, [data, dimensions, onNodeClick, selectedNodeId, activeTypes, highlightKOLs])
 
   useEffect(() => {
     drawGraph()
-  }, [data, dimensions, onNodeClick, selectedNodeId, activeTypes])
+  }, [data, dimensions, onNodeClick, selectedNodeId, activeTypes, highlightKOLs])
 
   return (
     <div ref={containerRef} className="graph-container">

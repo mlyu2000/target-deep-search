@@ -185,6 +185,29 @@ input, select, textarea {
   font-weight: 600;
 }
 
+.app-graph-toolbar {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 10;
+}
+
+.app-kol-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--hpe-surface);
+  border: 1px solid var(--hpe-border);
+  color: var(--hpe-text-primary);
+  border-radius: var(--hpe-radius);
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
 .app-graph-container {
   flex: 1;
   position: relative;

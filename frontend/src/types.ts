@@ -68,6 +68,25 @@ export interface StageInfo {
 
 export type EntityType = 'person' | 'organization' | 'product' | 'location' | 'technology'
 export type AnalyzerMode = 'graph' | 'competitive' | 'supplychain'
+export interface KolReport {
+  type: 'kol'
+  target: string
+  summary: string
+  ranked: Array<{
+    rank: number
+    id: string
+    name: string
+    type: EntityType
+    influence: number
+    weightedDegree: number
+    pagerank: number
+    betweenness: number
+    mentions: number
+    reason: string
+  }>
+}
+
+export type AnalysisView = 'graph' | 'competitive' | 'supplychain' | 'kol'
 
 export const ENTITY_COLORS: Record<EntityType, string> = {
   person: '#0070f8',

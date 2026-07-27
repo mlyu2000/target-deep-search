@@ -1,0 +1,93 @@
+.kol-report {
+  color: var(--hpe-text-primary);
+}
+
+.kol-summary {
+  font-size: 13px;
+  color: var(--hpe-text-secondary);
+  line-height: 1.5;
+  margin: 0 0 16px;
+}
+
+.kol-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.kol-item {
+  background: var(--hpe-surface-alt);
+  border: 1px solid var(--hpe-border);
+  border-radius: var(--hpe-radius);
+  padding: 12px 14px;
+}
+
+.kol-item-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kol-rank {
+  font-weight: 700;
+  color: var(--hpe-text-weak);
+  font-size: 13px;
+  width: 28px;
+}
+
+.kol-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.kol-name {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.kol-type {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--hpe-text-weak);
+}
+
+.kol-score {
+  margin-left: auto;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.kol-bar-track {
+  margin: 8px 0 6px;
+  height: 6px;
+  background: var(--hpe-border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.kol-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+.kol-metrics {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--hpe-text-weak);
+  margin-bottom: 6px;
+}
+
+.kol-reason {
+  margin: 0;
+  font-size: 12px;
+  color: var(--hpe-text-secondary);
+  line-height: 1.4;
+}

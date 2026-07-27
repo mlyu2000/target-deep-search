@@ -11,6 +11,7 @@ interface Props {
 const OPTIONS: { view: Exclude<AnalysisView, 'graph'>; label: string; desc: string }[] = [
   { view: 'competitive', label: 'Competitive Analysis', desc: 'Competitors, acquisitions, execs, partners' },
   { view: 'supplychain', label: 'Supply Chain Analysis', desc: 'Suppliers, tiers, geographic risks' },
+  { view: 'kol', label: 'KOL Analysis', desc: 'Most impactful entities by influence' },
 ]
 
 export default function AnalysisSidebar({ graphData, activeView, onSelect }: Props) {

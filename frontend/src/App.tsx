@@ -28,8 +28,9 @@ export default function App() {
   const [graphData, setGraphData] = useState<GraphData | null>(null)
   const [selectedNode, setSelectedNode] = useState<Node | null>(null)
   const [sessions, setSessions] = useState<Session[]>([])
-  const [activeView, setActiveView] = useState<'graph' | 'competitive' | 'supplychain'>('graph')
+  const [activeView, setActiveView] = useState<'graph' | 'competitive' | 'supplychain' | 'kol'>('graph')
   const [activeTypes, setActiveTypes] = useState<Set<string> | null>(null)
+  const [highlightKOLs, setHighlightKOLs] = useState(false)
   const [logs, setLogs] = useState<LogEntry[]>([])
   const cancelSse = useRef<(() => void) | null>(null)
 
@@ -240,6 +241,10 @@ export default function App() {
                       onClick={() => setActiveView('supplychain')}
                       className={activeView === 'supplychain' ? 'active' : ''}
                     >Supply Chain</button>
+                    <button
+                      onClick={() => setActiveView('kol')}
+                      className={activeView === 'kol' ? 'active' : ''}
+                    >KOL</button>
                   </div>
 
                   {activeView === 'graph' && (
@@ -251,6 +256,7 @@ export default function App() {
                         activeTypes={activeTypes ?? undefined}
                         onToggleType={toggleType}
                         onResetFilters={() => setActiveTypes(null)}
+                        highlightKOLs={highlightKOLs}
                         totalCount={graphData.nodes.length}
                         visibleCount={
                           activeTypes
@@ -262,11 +268,17 @@ export default function App() {
                             : graphData.nodes.length
                         }
                       />
-                      {taskId && (
-                        <div className="app-export-btn">
-                          <ExportButton taskId={taskId} />
-                        </div>
-                      )}
+                      <div className="app-graph-toolbar">
+                        <label className="app-kol-toggle">
+                          <input
+                            type="checkbox"
+                            checked={highlightKOLs}
+                            onChange={(e) => setHighlightKOLs(e.target.checked)}
+                          />
+                          Highlight top KOLs
+                        </label>
+                        {taskId && <ExportButton taskId={taskId} />}
+                      </div>
                     </div>
                   )}
 
@@ -281,6 +293,14 @@ export default function App() {
                   {activeView === 'supplychain' && graphData && (
                     <AnalysisTab
                       mode="supplychain"
+                      graphData={graphData}
+                      onBack={() => setActiveView('graph')}
+                    />
+                  )}
+
+                  {activeView === 'kol' && graphData && (
+                    <AnalysisTab
+                      mode="kol"
                       graphData={graphData}
                       onBack={() => setActiveView('graph')}
                     />
