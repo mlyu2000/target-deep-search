@@ -11,6 +11,8 @@ import ExportButton from './components/ExportButton'
 import SessionList from './components/SessionList'
 import AnalysisSidebar from './components/AnalysisSidebar'
 import AnalysisTab from './components/AnalysisTab'
+import WhatIfPanel from './components/WhatIfPanel'
+import type { SidebarView } from './components/AnalysisSidebar'
 import { buildGraph, getResult, connectStatusStream, listSessions } from './api/client'
 import { buildCompetitiveReport } from './analysis/competitive'
 import { buildSupplyChainReport } from './analysis/supplychain'
@@ -28,7 +30,7 @@ export default function App() {
   const [graphData, setGraphData] = useState<GraphData | null>(null)
   const [selectedNode, setSelectedNode] = useState<Node | null>(null)
   const [sessions, setSessions] = useState<Session[]>([])
-  const [activeView, setActiveView] = useState<'graph' | 'competitive' | 'supplychain' | 'kol'>('graph')
+  const [activeView, setActiveView] = useState<'graph' | 'competitive' | 'supplychain' | 'kol' | 'whatif'>('graph')
   const [activeTypes, setActiveTypes] = useState<Set<string> | null>(null)
   const [highlightKOLs, setHighlightKOLs] = useState(false)
   const [logs, setLogs] = useState<LogEntry[]>([])
@@ -245,6 +247,10 @@ export default function App() {
                       onClick={() => setActiveView('kol')}
                       className={activeView === 'kol' ? 'active' : ''}
                     >KOL</button>
+                    <button
+                      onClick={() => setActiveView('whatif')}
+                      className={activeView === 'whatif' ? 'active' : ''}
+                    >What-if</button>
                   </div>
 
                   {activeView === 'graph' && (
@@ -305,11 +311,15 @@ export default function App() {
                       onBack={() => setActiveView('graph')}
                     />
                   )}
+
+                  {activeView === 'whatif' && graphData && (
+                    <WhatIfPanel graph={graphData} />
+                  )}
                 </div>
 
                 <AnalysisSidebar
                   graphData={graphData}
-                  activeView={activeView}
+                  activeView={activeView === 'graph' ? 'competitive' : (activeView as SidebarView)}
                   onSelect={(view) => setActiveView(view)}
                 />
               </div>

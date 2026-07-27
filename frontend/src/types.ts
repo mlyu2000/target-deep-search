@@ -57,6 +57,7 @@ export interface StatusUpdate {
   relationships_found?: number | null
   stage?: string | null
   stages?: StageInfo[] | null
+  round?: number | null
 }
 
 export interface StageInfo {
@@ -119,3 +120,47 @@ export interface SupplyChainReport {
   geo_risks: Array<{ region: string; location: string; count: number }>
   single_source_deps: Array<{ name: string; connections: number }>
 }
+
+export interface AgentPersonaView {
+  id: string
+  name: string
+  type: string
+  bio: string
+  persona: string
+  stance: string
+  influence_weight: number
+  traits_sourced: string[]
+  inferred: string[]
+  enriched: boolean
+}
+
+export interface AgentStatementView {
+  round: number
+  agent_id: string
+  agent_name: string
+  reaction: string
+  statement: string
+  stance: string
+}
+
+export interface SimulationRoundView {
+  round: number
+  statements: AgentStatementView[]
+}
+
+export interface SimulationReportView {
+  summary?: string
+  positions?: Array<{ agent: string; final_stance: string; key_point: string }>
+  agreement?: string[]
+  conflict?: string[]
+  risks?: string[]
+  overall_outcome?: string
+}
+
+export interface WhatIfReport {
+  scenario: string
+  agents: AgentPersonaView[]
+  rounds: SimulationRoundView[]
+  report: SimulationReportView
+}
+

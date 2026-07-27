@@ -1,17 +1,19 @@
 import type { GraphData } from '../types'
-import type { AnalysisView } from './AnalysisTab'
 import './AnalysisSidebar.css'
+
+export type SidebarView = 'competitive' | 'supplychain' | 'kol' | 'whatif'
 
 interface Props {
   graphData: GraphData
-  activeView: AnalysisView
-  onSelect: (view: AnalysisView) => void
+  activeView: SidebarView
+  onSelect: (view: SidebarView) => void
 }
 
-const OPTIONS: { view: Exclude<AnalysisView, 'graph'>; label: string; desc: string }[] = [
+const OPTIONS: { view: SidebarView; label: string; desc: string }[] = [
   { view: 'competitive', label: 'Competitive Analysis', desc: 'Competitors, acquisitions, execs, partners' },
   { view: 'supplychain', label: 'Supply Chain Analysis', desc: 'Suppliers, tiers, geographic risks' },
   { view: 'kol', label: 'KOL Analysis', desc: 'Most impactful entities by influence' },
+  { view: 'whatif', label: 'What-if Simulation', desc: 'Agents react to a scenario you define' },
 ]
 
 export default function AnalysisSidebar({ graphData, activeView, onSelect }: Props) {

@@ -178,6 +178,37 @@ class LLMService:
 
         return validated_entities, validated_relationships
 
+    async def chat_json(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        temperature: float = 0.3,
+        max_tokens: int = 4096,
+    ) -> dict:
+        """Generic structured-JSON chat call. Returns parsed dict; raises on failure."""
+        response = await self.client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=temperature,
+            max_tokens=max_tokens,
+            timeout=self.timeout,
+        )
+        content = response.choices[0].message.content
+        if not content:
+            raise ValueError("Empty LLM response")
+        # Parse the first JSON object from the response.
+        text = content.strip()
+        m = re.search(r"\{[\s\S]*\}", text)
+        if not m:
+            raise ValueError("No JSON object found in LLM response")
+        try:
+            return json.loads(m.group(0))
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"Failed to parse LLM JSON: {exc}")
+
     async def extract(self, text: str, target: str, images: list = None) -> tuple[list, list]:
         prompt = self._build_prompt(text, target, images)
 

@@ -1,0 +1,224 @@
+.whatif-panel {
+  color: var(--hpe-text-primary);
+  padding: 16px;
+}
+
+.whatif-panel h3 {
+  margin: 0 0 4px;
+  font-size: 18px;
+}
+
+.whatif-sub {
+  font-size: 12px;
+  color: var(--hpe-text-secondary);
+  line-height: 1.5;
+  margin: 0 0 12px;
+}
+
+.whatif-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  margin: 8px 0 4px;
+  color: var(--hpe-text-secondary);
+}
+
+.whatif-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--hpe-surface);
+  border: 1px solid var(--hpe-border);
+  color: var(--hpe-text-primary);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.whatif-templates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.whatif-chip {
+  background: var(--hpe-surface);
+  border: 1px solid var(--hpe-border);
+  color: var(--hpe-text-secondary);
+  border-radius: 14px;
+  padding: 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+}
+.whatif-chip:hover:not(:disabled) {
+  border-color: var(--hpe-accent);
+  color: var(--hpe-text-primary);
+}
+
+.whatif-controls {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.whatif-round-chips {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.whatif-round-chip {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid var(--hpe-border);
+  background: var(--hpe-surface);
+  color: var(--hpe-text-primary);
+  cursor: pointer;
+  font-size: 12px;
+}
+.whatif-round-chip.auto {
+  width: auto;
+  padding: 0 10px;
+}
+.whatif-round-chip.active {
+  border-color: var(--hpe-accent);
+  background: var(--hpe-accent);
+  color: #fff;
+}
+
+.whatif-run {
+  background: var(--hpe-accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.whatif-run:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.whatif-progress {
+  font-size: 13px;
+  color: var(--hpe-text-secondary);
+  margin-top: 12px;
+}
+.whatif-progress em {
+  color: var(--hpe-accent);
+}
+
+.whatif-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--hpe-border);
+  border-top-color: var(--hpe-accent);
+  border-radius: 50%;
+  animation: whatif-spin 0.8s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+@keyframes whatif-spin {
+  to { transform: rotate(360deg); }
+}
+
+.whatif-error {
+  color: #e8632c;
+  font-size: 13px;
+  margin-top: 10px;
+}
+
+.whatif-result {
+  margin-top: 16px;
+  border-top: 1px solid var(--hpe-border);
+  padding-top: 12px;
+}
+.whatif-result h4 {
+  margin: 12px 0 6px;
+  font-size: 14px;
+}
+
+.whatif-agents {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.whatif-agent {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--hpe-surface);
+  border: 1px solid var(--hpe-border);
+  border-radius: 14px;
+  padding: 3px 10px;
+  font-size: 12px;
+}
+.whatif-agent-type {
+  color: var(--hpe-text-secondary);
+  font-size: 11px;
+}
+.whatif-enriched {
+  background: var(--hpe-accent);
+  color: #fff;
+  border-radius: 8px;
+  padding: 0 6px;
+  font-size: 10px;
+}
+
+.whatif-transcript {
+  max-height: 320px;
+  overflow-y: auto;
+  background: var(--hpe-surface);
+  border: 1px solid var(--hpe-border);
+  border-radius: 8px;
+  padding: 10px;
+}
+.whatif-round-head {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--hpe-accent);
+  margin: 8px 0 4px;
+}
+.whatif-statement {
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 3px 0;
+}
+.whatif-reaction {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 10px;
+  margin-right: 4px;
+}
+.whatif-statement-text {
+  color: var(--hpe-text-secondary);
+}
+
+.whatif-report {
+  margin-top: 12px;
+}
+.whatif-summary {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--hpe-text-primary);
+}
+.whatif-section {
+  font-size: 12px;
+  margin: 6px 0;
+}
+.whatif-section ul {
+  margin: 4px 0;
+  padding-left: 18px;
+}
+.whatif-outcome {
+  font-size: 13px;
+  margin-top: 6px;
+}

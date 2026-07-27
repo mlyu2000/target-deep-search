@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import init_db
-from app.routers import graph, sessions
+from app.routers import graph, sessions, simulate
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s:%(name)s: %(message)s")
 
@@ -31,6 +31,7 @@ app.add_middleware(
 
 app.include_router(graph.router, prefix="/api")
 app.include_router(sessions.router, prefix="/api")
+app.include_router(simulate.router, prefix="/api")
 
 
 @app.get("/api/health")

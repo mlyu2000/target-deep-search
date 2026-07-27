@@ -1,4 +1,4 @@
-import type { BuildResponse, GraphData, Session, StatusUpdate, AnalyzerMode } from '../types'
+import type { BuildResponse, GraphData, Session, StatusUpdate, AnalyzerMode, WhatIfReport } from '../types'
 
 const API_BASE = '/api'
 
@@ -92,4 +92,60 @@ export async function deleteSession(id: string): Promise<{ ok: boolean }> {
 
 export function exportSession(id: string): void {
   window.open(`${API_BASE}/sessions/${id}/export`, '_blank')
+}
+
+export interface SimulateRequest {
+  graph: GraphData
+  scenario: string
+  top_k?: number
+  rounds?: number
+  until_stable?: boolean
+  enrich?: boolean
+}
+
+export interface SimulateResponse {
+  task_id: string
+}
+
+export async function startSimulate(req: SimulateRequest): Promise<SimulateResponse> {
+  return request<SimulateResponse>('/simulate', {
+    method: 'POST',
+    body: JSON.stringify(req),
+  })
+}
+
+export function connectSimulateStream(
+  taskId: string,
+  onStatus: (update: StatusUpdate) => void,
+  onError: (error: Error) => void,
+  onComplete: () => void,
+): () => void {
+  const eventSource = new EventSource(`${API_BASE}/simulate/status/${taskId}`)
+
+  eventSource.addEventListener('status', (event) => {
+    try {
+      const data: StatusUpdate = JSON.parse(event.data)
+      onStatus(data)
+      if (data.status === 'complete' || data.status === 'error') {
+        eventSource.close()
+        onComplete()
+      }
+    } catch (e) {
+      console.error('Failed to parse SSE event:', e)
+    }
+  })
+
+  eventSource.onerror = () => {
+    const error = new Error('SSE connection failed')
+    onError(error)
+    eventSource.close()
+  }
+
+  return () => {
+    eventSource.close()
+  }
+}
+
+export async function getSimulateResult(taskId: string): Promise<WhatIfReport> {
+  return request<WhatIfReport>(`/simulate/result/${taskId}`)
 }
