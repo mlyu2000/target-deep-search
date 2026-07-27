@@ -2,7 +2,6 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import Header from './components/Header'
 import SearchInput from './components/SearchInput'
 import DepthControl from './components/DepthControl'
-import ModeSelector from './components/ModeSelector'
 import AdvancedSettings from './components/AdvancedSettings'
 import GraphViewer from './components/GraphViewer'
 import ResultsPanel from './components/ResultsPanel'
@@ -10,16 +9,16 @@ import ProcessPanel from './components/ProcessPanel'
 import type { LogEntry } from './components/ProcessPanel'
 import ExportButton from './components/ExportButton'
 import SessionList from './components/SessionList'
-import CompetitiveReport from './components/CompetitiveReport'
-import SupplyChainView from './components/SupplyChainView'
-import GraphSummary from './components/GraphSummary'
-import { buildGraph, analyzeGraph, getResult, connectStatusStream, listSessions } from './api/client'
-import type { GraphData, Node, Session, StatusUpdate, StageInfo, AnalyzerMode, CompetitiveReport as CompReport, SupplyChainReport } from './types'
+import AnalysisSidebar from './components/AnalysisSidebar'
+import AnalysisTab from './components/AnalysisTab'
+import { buildGraph, getResult, connectStatusStream, listSessions } from './api/client'
+import { buildCompetitiveReport } from './analysis/competitive'
+import { buildSupplyChainReport } from './analysis/supplychain'
+import type { GraphData, Node, Session, StatusUpdate, StageInfo } from './types'
 
 export default function App() {
   const [target, setTarget] = useState('')
   const [depth, setDepth] = useState(2)
-  const [mode, setMode] = useState<AnalyzerMode>('graph')
   const [maxPages, setMaxPages] = useState(10)
   const [categories, setCategories] = useState<string[]>(['general', 'news'])
   const [taskId, setTaskId] = useState<string | null>(null)
@@ -29,7 +28,7 @@ export default function App() {
   const [graphData, setGraphData] = useState<GraphData | null>(null)
   const [selectedNode, setSelectedNode] = useState<Node | null>(null)
   const [sessions, setSessions] = useState<Session[]>([])
-  const [reportTab, setReportTab] = useState<'graph' | 'report'>('graph')
+  const [activeView, setActiveView] = useState<'graph' | 'competitive' | 'supplychain'>('graph')
   const [activeTypes, setActiveTypes] = useState<Set<string> | null>(null)
   const [logs, setLogs] = useState<LogEntry[]>([])
   const cancelSse = useRef<(() => void) | null>(null)
@@ -60,7 +59,7 @@ export default function App() {
     })
   }, [])
 
-  const handleSearch = useCallback(async (searchTarget: string, searchDepth: number, searchMode: AnalyzerMode) => {
+  const handleSearch = useCallback(async (searchTarget: string, searchDepth: number) => {
     if (cancelSse.current) {
       cancelSse.current()
       cancelSse.current = null
@@ -71,14 +70,14 @@ export default function App() {
     setSelectedNode(null)
     setStages([])
     setLogs([])
+    setActiveView('graph')
 
     const catDesc = categories.length ? ` (categories: ${categories.join(', ')})` : ''
     const pageDesc = maxPages !== 10 ? `, max pages: ${maxPages}` : ''
-    pushLog(`Starting ${searchMode} analysis for "${searchTarget}" (depth ${searchDepth}${pageDesc}${catDesc})`)
+    pushLog(`Starting analysis for "${searchTarget}" (depth ${searchDepth}${pageDesc}${catDesc})`)
 
     try {
-      const apiCall = searchMode === 'graph' ? buildGraph : analyzeGraph
-      const { task_id } = await apiCall(searchTarget, searchDepth, searchMode, maxPages, categories.length ? categories : undefined)
+      const { task_id } = await buildGraph(searchTarget, searchDepth, maxPages, categories.length ? categories : undefined)
       setTaskId(task_id)
 
       cancelSse.current = connectStatusStream(
@@ -99,7 +98,7 @@ export default function App() {
             const result = await getResult(task_id)
             setGraphData(result)
             setActiveTypes(null)
-            setReportTab('graph')
+            setActiveView('graph')
             setStatus(result.error ? 'error' : 'complete')
             if (result.error) {
               setStatusMessage(result.error)
@@ -135,8 +134,8 @@ export default function App() {
       setStatus('complete')
       setStatusMessage('')
       setSelectedNode(null)
-      setReportTab('graph')
-      setMode((result.report_type as AnalyzerMode) || 'graph')
+      setActiveView('graph')
+      setActiveTypes(null)
       setStages([])
       const now = new Date()
       const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`
@@ -157,25 +156,19 @@ export default function App() {
     setSessions(res.sessions)
   }, [])
 
-  const hasReport = graphData?.report && (graphData.report_type === 'competitive' || graphData.report_type === 'supplychain')
-  const showGraph = !!graphData && reportTab === 'graph'
-
   return (
     <>
       <Header />
       <main className="app-main">
         <section className="app-header-section">
           <h1 className="app-subtitle">
-            {mode === 'graph' && 'Explore relationships between people, organizations, and more'}
-            {mode === 'competitive' && 'Competitive intelligence — map competitors, acquisitions, and partners'}
-            {mode === 'supplychain' && 'Supply chain mapping — trace suppliers, tiers, and geographic risks'}
+            Explore relationships between people, organizations, and more
           </h1>
           <div className="app-controls-row">
-            <ModeSelector mode={mode} onChange={setMode} disabled={status === 'building'} />
             <SearchInput
               value={target}
               onChange={setTarget}
-              onSubmit={(val) => handleSearch(val, depth, mode)}
+              onSubmit={(val) => handleSearch(val, depth)}
               disabled={status === 'building'}
             />
           </div>
@@ -221,50 +214,69 @@ export default function App() {
             )}
 
             {graphData && (
-              <div className="app-report-tabs">
-                <button
-                  onClick={() => setReportTab('graph')}
-                  className={reportTab === 'graph' ? 'active' : ''}
-                >Graph</button>
-                <button
-                  onClick={() => setReportTab('report')}
-                  className={reportTab === 'report' ? 'active' : ''}
-                >Report</button>
-              </div>
-            )}
-
-            {showGraph && (
-              <div className="app-graph-container">
-                <GraphViewer
-                  data={graphData}
-                  onNodeClick={setSelectedNode}
-                  selectedNodeId={selectedNode?.id ?? null}
-                  activeTypes={activeTypes ?? undefined}
-                  onToggleType={toggleType}
-                />
-                {taskId && (
-                  <div className="app-export-btn">
-                    <ExportButton taskId={taskId} />
+              <div className="app-analysis-layout">
+                <div className="app-analysis-main">
+                  <div className="app-view-tabs">
+                    <button
+                      onClick={() => setActiveView('graph')}
+                      className={activeView === 'graph' ? 'active' : ''}
+                    >Graph</button>
+                    <button
+                      onClick={() => setActiveView('competitive')}
+                      className={activeView === 'competitive' ? 'active' : ''}
+                    >Competitive</button>
+                    <button
+                      onClick={() => setActiveView('supplychain')}
+                      className={activeView === 'supplychain' ? 'active' : ''}
+                    >Supply Chain</button>
                   </div>
-                )}
-              </div>
-            )}
 
-            {graphData && reportTab === 'report' && graphData.report_type === 'competitive' && graphData.report && (
-              <div className="app-report-container">
-                <CompetitiveReport report={graphData.report as unknown as CompReport} />
-              </div>
-            )}
+                  {activeView === 'graph' && (
+                    <div className="app-graph-container">
+                      <GraphViewer
+                        data={graphData}
+                        onNodeClick={setSelectedNode}
+                        selectedNodeId={selectedNode?.id ?? null}
+                        activeTypes={activeTypes ?? undefined}
+                        onToggleType={toggleType}
+                        onResetFilters={() => setActiveTypes(null)}
+                        totalCount={graphData.nodes.length}
+                        visibleCount={
+                          activeTypes
+                            ? graphData.nodes.filter((n) => activeTypes.has(n.type)).length
+                            : graphData.nodes.length
+                        }
+                      />
+                      {taskId && (
+                        <div className="app-export-btn">
+                          <ExportButton taskId={taskId} />
+                        </div>
+                      )}
+                    </div>
+                  )}
 
-            {graphData && reportTab === 'report' && graphData.report_type === 'supplychain' && graphData.report && (
-              <div className="app-report-container">
-                <SupplyChainView report={graphData.report as unknown as SupplyChainReport} />
-              </div>
-            )}
+                  {activeView === 'competitive' && graphData && (
+                    <AnalysisTab
+                      mode="competitive"
+                      graphData={graphData}
+                      onBack={() => setActiveView('graph')}
+                    />
+                  )}
 
-            {graphData && reportTab === 'report' && (!hasReport) && (
-              <div className="app-report-container">
-                <GraphSummary data={graphData} />
+                  {activeView === 'supplychain' && graphData && (
+                    <AnalysisTab
+                      mode="supplychain"
+                      graphData={graphData}
+                      onBack={() => setActiveView('graph')}
+                    />
+                  )}
+                </div>
+
+                <AnalysisSidebar
+                  graphData={graphData}
+                  activeView={activeView}
+                  onSelect={(view) => setActiveView(view)}
+                />
               </div>
             )}
 

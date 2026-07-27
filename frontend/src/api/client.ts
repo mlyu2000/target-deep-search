@@ -28,7 +28,7 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
   return res.json()
 }
 
-export async function buildGraph(target: string, depth: number, _mode?: AnalyzerMode, maxPages = 10, categories?: string[]): Promise<BuildResponse> {
+export async function buildGraph(target: string, depth: number, maxPages = 10, categories?: string[]): Promise<BuildResponse> {
   return request<BuildResponse>('/graph/build', {
     method: 'POST',
     body: JSON.stringify({ target, depth, max_pages: maxPages, categories: categories?.length ? categories : undefined }),

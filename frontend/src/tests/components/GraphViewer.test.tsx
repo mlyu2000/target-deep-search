@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent, within, waitFor } from '@testing-library/react'
 import { useState } from 'react'
 import GraphViewer from '../../components/GraphViewer'
@@ -85,5 +85,39 @@ describe('GraphViewer legend filter', () => {
       />,
     )
     await waitFor(() => expect(countCircles(container)).toBe(2))
+  })
+
+  it('shows a live entity-count readout', async () => {
+    const { container } = render(
+      <GraphViewer
+        data={mockData}
+        onNodeClick={() => {}}
+        selectedNodeId={null}
+        totalCount={4}
+        visibleCount={4}
+      />,
+    )
+    await waitFor(() => expect(countCircles(container)).toBe(4))
+    expect(screen.getByText('Showing 4 / 4 entities')).toBeInTheDocument()
+  })
+
+  it('shows a Reset filters button only when a filter is active and resets it', async () => {
+    const onReset = vi.fn()
+    const { container } = render(
+      <GraphViewer
+        data={mockData}
+        onNodeClick={() => {}}
+        selectedNodeId={null}
+        activeTypes={new Set(['organization'])}
+        onResetFilters={onReset}
+        totalCount={4}
+        visibleCount={1}
+      />,
+    )
+    await waitFor(() => expect(countCircles(container)).toBe(1))
+    const resetBtn = screen.getByText('Reset filters')
+    expect(resetBtn).toBeInTheDocument()
+    fireEvent.click(resetBtn)
+    expect(onReset).toHaveBeenCalledTimes(1)
   })
 })

@@ -10,6 +10,9 @@ interface GraphViewerProps {
   selectedNodeId: string | null
   activeTypes?: Set<string>
   onToggleType?: (type: string) => void
+  onResetFilters?: () => void
+  totalCount?: number
+  visibleCount?: number
 }
 
 interface SimNode extends d3.SimulationNodeDatum {
@@ -27,7 +30,7 @@ interface SimLink extends d3.SimulationLinkDatum<SimNode> {
   description: string
 }
 
-export default function GraphViewer({ data, onNodeClick, selectedNodeId, activeTypes, onToggleType }: GraphViewerProps) {
+export default function GraphViewer({ data, onNodeClick, selectedNodeId, activeTypes, onToggleType, onResetFilters, totalCount, visibleCount }: GraphViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const svgRef = useRef<SVGSVGElement>(null)
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
@@ -207,6 +210,18 @@ export default function GraphViewer({ data, onNodeClick, selectedNodeId, activeT
     <div ref={containerRef} className="graph-container">
       <svg ref={svgRef} width={dimensions.width} height={dimensions.height} />
       <div className="graph-legend">
+        <div className="graph-legend-header">
+          <span className="graph-legend-count">
+            {typeof visibleCount === 'number' && typeof totalCount === 'number'
+              ? `Showing ${visibleCount} / ${totalCount} entities`
+              : ''}
+          </span>
+          {activeTypes && activeTypes.size < 5 && onResetFilters && (
+            <button type="button" className="graph-legend-reset" onClick={onResetFilters}>
+              Reset filters
+            </button>
+          )}
+        </div>
         {(Object.entries(ENTITY_COLORS) as [EntityType, string][]).map(([type, color]) => {
           const active = !activeTypes || activeTypes.has(type)
           return (

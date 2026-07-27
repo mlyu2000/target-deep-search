@@ -1,0 +1,58 @@
+.analysis-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  background: var(--hpe-surface);
+  border: 1px solid var(--hpe-border);
+  border-radius: var(--hpe-radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-self: flex-start;
+}
+
+.analysis-sidebar-title {
+  margin: 0;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--hpe-text-primary);
+}
+
+.analysis-sidebar-sub {
+  margin: 0;
+  font-size: 12px;
+  color: var(--hpe-text-weak);
+  line-height: 1.4;
+}
+
+.analysis-sidebar-btn {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  background: var(--hpe-surface-alt);
+  border: 1px solid var(--hpe-border);
+  border-radius: var(--hpe-radius);
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.analysis-sidebar-btn:hover {
+  border-color: var(--hpe-brand);
+}
+.analysis-sidebar-btn.active {
+  border-color: var(--hsl-brand, #0070f8);
+  border-color: #0070f8;
+  background: color-mix(in srgb, #0070f8 12%, var(--hpe-surface-alt));
+}
+
+.analysis-sidebar-btn-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--hpe-text-primary);
+}
+.analysis-sidebar-btn-desc {
+  font-size: 11px;
+  color: var(--hpe-text-weak);
+}

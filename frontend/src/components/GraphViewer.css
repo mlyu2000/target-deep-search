@@ -20,10 +20,38 @@
   gap: 8px;
   padding: 8px 12px;
   background: var(--hpe-surface);
-  border-radius: var(--hpe-radius);
   border: 1px solid var(--hpe-border);
-  font-size: 0.75rem;
-  box-shadow: var(--hpe-shadow);
+  border-radius: var(--hpe-radius);
+  max-width: 70%;
+  z-index: 10;
+}
+
+.graph-legend-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  font-size: 12px;
+  color: var(--hpe-text-secondary);
+}
+
+.graph-legend-count {
+  font-weight: 600;
+  color: var(--hpe-text-primary);
+}
+
+.graph-legend-reset {
+  background: var(--hpe-surface-alt);
+  border: 1px solid var(--hpe-border);
+  color: var(--hpe-text-primary);
+  border-radius: var(--hpe-radius);
+  padding: 3px 8px;
+  font-size: 11px;
+  cursor: pointer;
+}
+.graph-legend-reset:hover {
+  border-color: var(--hpe-brand);
 }
 
 .graph-legend-item {
