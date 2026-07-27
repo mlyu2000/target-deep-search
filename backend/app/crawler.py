@@ -3,7 +3,7 @@ import re
 import ssl
 from dataclasses import dataclass, field
 from typing import Optional
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 import aiohttp
 from bs4 import BeautifulSoup
@@ -86,6 +86,41 @@ class Crawler:
 
         return results
 
+    @staticmethod
+    def normalize_url(url: str) -> str:
+        """Normalize a URL for deduplication: scheme-insensitive, strip
+        trailing slash, fragment, and common tracking query params."""
+        try:
+            p = urlparse(url)
+        except Exception:
+            return url.lower().rstrip("/")
+        netloc = p.netloc.lower()
+        path = p.path.rstrip("/")
+        # Keep only a whitelist of meaningful query keys; drop utm_*/tracking.
+        keep = []
+        if p.query:
+            for kv in p.query.split("&"):
+                k = kv.split("=", 1)[0].lower()
+                if k and not k.startswith("utm_") and k not in ("ref", "fbclid", "gclid"):
+                    keep.append(kv)
+        q = "&".join(sorted(keep))
+        return f"{netloc}{path}?{q}" if q else f"{netloc}{path}"
+
+    @staticmethod
+    def dedupe_urls(urls: list[str]) -> list[str]:
+        """Return URLs with near-duplicates removed (same normalized host+path)."""
+        seen = set()
+        out = []
+        for u in urls:
+            if not u:
+                continue
+            key = Crawler.normalize_url(u)
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append(u)
+        return out
+
     async def fetch_page(self, url: str) -> PageData:
         async with self._semaphore:
             try:
@@ -125,7 +160,27 @@ class Crawler:
 
         text = soup.get_text(separator=" ", strip=True)
         text = re.sub(r"\s+", " ", text)
-        return text[:10000]
+        return text[: settings.max_extract_chars]
+
+    def is_usable_content(self, text: str, min_chars: int = 100) -> bool:
+        """Reject near-empty / error / boilerplate-stub pages.
+
+        - below min_chars: cookie banners, 'OK', bare stubs
+        - error stubs: 503/404/block pages that crawlers sometimes return as body
+        """
+        t = text.strip()
+        if len(t) < min_chars:
+            return False
+        lowered = t.lower()
+        error_markers = (
+            "503 service", "502 service", "504 ",
+            "403 forbidden", "service temporarily unavailable",
+            "access denied", "are you a robot", "checking your browser",
+        )
+        # Only treat as an error stub if the WHOLE page is just the error text.
+        if len(t) < 400 and any(m in lowered for m in error_markers):
+            return False
+        return True
 
     def extract_images(self, page: PageData, max_images: int = 15) -> list[ImageData]:
         soup = BeautifulSoup(page.html, "lxml")

@@ -184,10 +184,39 @@ class TestCrawler:
     def test_extract_text_truncates(self, crawler):
         page = PageData(
             url="https://example.com",
-            html=f"<html><body><p>{'x' * 15000}</p></body></html>",
+            html=f"<html><body><p>{'x' * 50000}</p></body></html>",
         )
         text = crawler.extract_text(page)
-        assert len(text) <= 10000
+        assert len(text) <= 30000
+
+    def test_is_usable_content_accepts_real_text(self, crawler):
+        assert crawler.is_usable_content("This is a reasonably long article body with several sentences describing the company, its products, and the market in enough detail to be useful.") is True
+
+    def test_is_usable_content_rejects_stubs(self, crawler):
+        assert crawler.is_usable_content("OK") is False
+        assert crawler.is_usable_content("...") is False
+        assert crawler.is_usable_content("cookie consent accept") is False
+
+    def test_is_usable_content_rejects_error_stubs(self, crawler):
+        assert crawler.is_usable_content("503 Service Temporarily Unavailable") is False
+        assert crawler.is_usable_content("Access Denied. You do not have permission to view this page.") is False
+
+    def test_normalize_url_strips_noise(self, crawler):
+        a = crawler.normalize_url("https://example.com/page/")
+        b = crawler.normalize_url("http://example.com/page?utm_source=x&fbclid=1")
+        c = crawler.normalize_url("https://example.com/page#frag")
+        assert a == b == c == "example.com/page"
+
+    def test_dedupe_urls_removes_same_path(self, crawler):
+        urls = [
+            "https://example.com/a",
+            "https://example.com/a?utm_source=x",
+            "https://example.com/b",
+        ]
+        out = crawler.dedupe_urls(urls)
+        assert len(out) == 2
+        assert "https://example.com/a" in out
+        assert "https://example.com/b" in out
 
     def test_extract_images(self, crawler):
         page = PageData(

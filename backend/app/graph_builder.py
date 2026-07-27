@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import re
 import time
 from difflib import SequenceMatcher
 from typing import Callable, Optional
@@ -65,7 +66,7 @@ class GraphBuilder:
             _set_stage("search", "done")
 
             _set_stage("fetch", "active")
-            page_urls = [r.url for r in results]
+            page_urls = self.crawler.dedupe_urls([r.url for r in results])
             await emit("fetching", f"Fetching {len(page_urls)} pages...", 1, stage="fetch", stages=current_stages)
             pages = await self.crawler.fetch_pages(page_urls)
 
@@ -78,12 +79,11 @@ class GraphBuilder:
             _set_stage("fetch", "done")
 
             _set_stage("extract", "active")
-            content_sources = []
-            for i, page in enumerate(pages):
-                text, images = self.crawler.extract_text_and_images(page)
-                if text.strip():
-                    content_sources.append(("page", text, images, page.url))
-                    await emit("extracting", f"Extracted {len(text)} chars, {len(images)} images from page {i+1}", 1, stage="extract", stages=current_stages, progress=int((i+1)/len(pages)*50) if pages else 0)
+            content_sources, skipped = await self._ingest_pages(
+                pages, "page", emit, total_pages=len(pages), depth=1, stages=current_stages
+            )
+            if skipped:
+                await emit("extracting", f"Skipped {skipped} low-quality/duplicate pages", 1, stage="extract", stages=current_stages)
 
             if not content_sources:
                 await emit("extracting", "No pages fetched, falling back to search snippets", 1, stage="extract", stages=current_stages)
@@ -116,13 +116,11 @@ class GraphBuilder:
                     try:
                         sub_results = await self.crawler.search(entity["name"], settings.max_pages_per_entity)
                         await emit("expanding", f"Searched '{entity['name']}' → {len(sub_results)} results", current_depth, stage="expand", stages=current_stages)
-                        sub_pages = await self.crawler.fetch_pages([r.url for r in sub_results])
+                        sub_pages = await self.crawler.fetch_pages(self.crawler.dedupe_urls([r.url for r in sub_results]))
 
-                        sub_content = []
-                        for page in sub_pages:
-                            text, images = self.crawler.extract_text_and_images(page)
-                            if text.strip():
-                                sub_content.append(("page", text, images))
+                        sub_content, sub_skipped = await self._ingest_pages(
+                            sub_pages, "sub-page", emit, total_pages=len(sub_pages), depth=current_depth, stages=current_stages
+                        )
 
                         if not sub_content:
                             for r in sub_results:
@@ -193,6 +191,41 @@ class GraphBuilder:
             await emit("error", f"Build failed: {str(e)}", 1)
             logger.exception("Build failed")
             raise
+
+    async def _ingest_pages(self, pages, label, emit, total_pages, depth, stages):
+        """Filter + dedupe fetched pages into usable content sources.
+
+        - drops pages below the minimum-content threshold (stubs/error pages)
+        - drops HTTP error pages (status >= 400)
+        - dedupes by normalized URL and by near-identical extracted text
+        Returns (content_sources, skipped_count).
+        """
+        content_sources = []
+        seen_texts = set()
+        skipped = 0
+        for i, page in enumerate(pages):
+            if page.status and page.status >= 400:
+                skipped += 1
+                continue
+            text, images = self.crawler.extract_text_and_images(page)
+            if not self.crawler.is_usable_content(text):
+                skipped += 1
+                continue
+            norm = re.sub(r"\s+", " ", text.strip()).lower()
+            if norm in seen_texts:
+                skipped += 1
+                continue
+            seen_texts.add(norm)
+            content_sources.append(("page", text, images, page.url))
+            if emit:
+                await emit(
+                    "extracting",
+                    f"Extracted {len(text)} chars, {len(images)} images from {label} {i + 1}",
+                    depth, stage="extract",
+                    stages=stages,
+                    progress=int((i + 1) / total_pages * 50) if total_pages else 0,
+                )
+        return content_sources, skipped
 
     async def _extract_batch(
         self,

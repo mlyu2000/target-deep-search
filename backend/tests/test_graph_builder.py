@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from app.graph_builder import GraphBuilder
+from app.crawler import Crawler
 from app.schemas import GraphResponse, NodeSchema, EdgeSchema
 
 
@@ -15,9 +16,13 @@ def mock_crawler():
     ])
 
     def extract_text_and_images(page):
-        return ("The target entity was founded by John Doe.", [])
+        # >= 200 chars so it passes the crawler's is_usable_content threshold
+        return ("The target entity was founded by John Doe and has operated for many years "
+                "across multiple regions, building a broad portfolio of products and services "
+                "that serve enterprise customers worldwide with a large partner ecosystem.", [])
 
     crawler.extract_text_and_images = MagicMock(side_effect=extract_text_and_images)
+    crawler.is_usable_content = MagicMock(side_effect=lambda t: Crawler.is_usable_content(None, t))
     return crawler
 
 
@@ -155,3 +160,22 @@ class TestGraphBuilder:
         ]
         result = builder._dedup_relationships(rels)
         assert len(result) == 2
+
+
+class TestIngestPages:
+    @pytest.mark.asyncio
+    async def test_ingest_filters_stubs_and_dedupes(self, builder):
+        good = "x" * 300  # long enough to pass is_usable_content
+        pages = [
+            MagicMock(url="https://a.com/1", html="", status=200),
+            MagicMock(url="https://a.com/2", html="", status=200),
+            MagicMock(url="https://a.com/3", html="", status=403),
+        ]
+        builder.crawler.extract_text_and_images = MagicMock(side_effect=[
+            (good, []),
+            ("OK", []),
+            (good, []),
+        ])
+        sources, skipped = await builder._ingest_pages(pages, "page", None, total_pages=3, depth=1, stages=[])
+        assert len(sources) == 1
+        assert sources[0][3] == "https://a.com/1"
