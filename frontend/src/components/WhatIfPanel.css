@@ -228,3 +228,88 @@
   font-size: 13px;
   margin-top: 6px;
 }
+
+/* Top-K agent preview cards (before run) */
+.whatif-agents-preview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 8px 0 14px;
+}
+.whatif-agent-card {
+  background: var(--hpe-surface);
+  border: 1px solid var(--hpe-border);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+.whatif-agent-card-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.whatif-agent-rank {
+  font-weight: 700;
+  color: var(--hpe-accent);
+  font-size: 12px;
+  min-width: 22px;
+}
+.whatif-agent-name {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--hpe-text-primary);
+}
+.whatif-agent-type {
+  color: var(--hpe-text-secondary);
+  font-size: 11px;
+}
+.whatif-influence {
+  height: 6px;
+  background: var(--hpe-border);
+  border-radius: 4px;
+  margin: 6px 0 4px;
+  overflow: hidden;
+}
+.whatif-influence-bar {
+  height: 100%;
+  background: var(--hpe-accent);
+  border-radius: 4px;
+}
+.whatif-agent-reason {
+  font-size: 10px;
+  color: var(--hpe-text-secondary);
+  line-height: 1.35;
+}
+
+/* Expandable result agent rows */
+.whatif-agent-row {
+  border: 1px solid var(--hpe-border);
+  border-radius: 8px;
+  margin: 4px 0;
+  overflow: hidden;
+}
+.whatif-agent-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  background: var(--hpe-surface);
+  border: none;
+  padding: 6px 10px;
+  cursor: pointer;
+  color: var(--hpe-text-primary);
+  font-size: 12px;
+}
+.whatif-chevron {
+  margin-left: auto;
+  color: var(--hpe-text-secondary);
+}
+.whatif-agent-detail {
+  padding: 6px 10px 10px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--hpe-text-secondary);
+  border-top: 1px solid var(--hpe-border);
+}
+.whatif-agent-detail strong {
+  color: var(--hpe-text-primary);
+}

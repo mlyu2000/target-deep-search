@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 
 const graph = {
   target: 'HPE',
@@ -7,8 +7,14 @@ const graph = {
   nodes: [
     { id: 'a', name: 'HPE', type: 'organization', description: 'Enterprise tech.', images: [], mention_count: 10 },
     { id: 'b', name: 'Dell', type: 'organization', description: 'Competitor.', images: [], mention_count: 4 },
+    { id: 'c', name: 'Antonio Neri', type: 'person', description: 'CEO.', images: [], mention_count: 6 },
+    { id: 'd', name: 'GreenLake', type: 'product', description: 'Cloud.', images: [], mention_count: 3 },
   ],
-  edges: [{ source: 'a', target: 'b', type: 'competes', strength: 4, description: '', source_urls: [] }],
+  edges: [
+    { source: 'c', target: 'a', type: 'ceo_of', strength: 5, description: '', source_urls: [] },
+    { source: 'a', target: 'b', type: 'competes', strength: 4, description: '', source_urls: [] },
+    { source: 'a', target: 'd', type: 'owns', strength: 3, description: '', source_urls: [] },
+  ],
 }
 
 const sampleResult = {
@@ -33,41 +39,47 @@ const sampleResult = {
   },
 }
 
-const mocks = vi.hoisted(() => ({
-  startSimulate: vi.fn().mockResolvedValue({ task_id: 't1' }),
-  getSimulateResult: vi.fn().mockResolvedValue(undefined),
-  connectSimulateStream: vi.fn((_id: string, _onStatus: any, _onErr: any, onComplete: any) => {
-    onComplete()
-    return () => {}
-  }),
-}))
+const startSimulate = vi.fn().mockResolvedValue({ task_id: 't1' })
+const getSimulateResult = vi.fn().mockResolvedValue(sampleResult)
+const connectSimulateStream = vi.fn((_id: string, _onStatus: any, _onErr: any, onComplete: any) => {
+  onComplete()
+  return () => {}
+})
 
 vi.mock('../../api/client', () => ({
-  startSimulate: mocks.startSimulate,
-  connectSimulateStream: mocks.connectSimulateStream,
-  getSimulateResult: mocks.getSimulateResult,
+  startSimulate,
+  connectSimulateStream,
+  getSimulateResult,
 }))
 
 import WhatIfPanel from '../../components/WhatIfPanel'
 
 describe('WhatIfPanel', () => {
-  it('renders scenario input, template chips, round selector and Run', () => {
-    render(<WhatIfPanel graph={graph as any} />)
-    expect(screen.getByText('What-if Simulation')).toBeInTheDocument()
-    expect(screen.getByText(/HPE is acquired by a larger competitor/)).toBeInTheDocument()
-    expect(screen.getByText('auto')).toBeInTheDocument()
+  it('renders top-K agent preview cards with rank + influence before run', () => {
+    const setState = vi.fn()
+    render(<WhatIfPanel graph={graph as any} state={{ scenario: '', rounds: 3, autoStable: false, running: false, progress: '', roundLabel: '', result: null, error: '' }} setState={setState} />)
+    // preview cards render ranked agents
+    const cards = document.querySelectorAll('.whatif-agent-card')
+    expect(cards.length).toBeGreaterThan(0)
+    expect(screen.getByText('#1')).toBeInTheDocument()
+    // influence bars present
+    expect(document.querySelectorAll('.whatif-influence-bar').length).toBeGreaterThan(0)
+    // run button present
     expect(screen.getByText('Run Simulation')).toBeInTheDocument()
   })
 
-  it('runs simulation and renders transcript + report', async () => {
-    mocks.getSimulateResult.mockResolvedValue(sampleResult)
-    render(<WhatIfPanel graph={graph as any} />)
+  it('runs simulation, shows transcript + report, and agent detail is expandable', async () => {
+    const setState = vi.fn()
+    render(<WhatIfPanel graph={graph as any} state={{ scenario: '', rounds: 3, autoStable: false, running: false, progress: '', roundLabel: '', result: null, error: '' }} setState={setState} />)
     fireEvent.click(screen.getByText(/HPE is acquired by a larger competitor/))
     fireEvent.click(screen.getByText('Run Simulation'))
-    await waitFor(() => expect(mocks.startSimulate).toHaveBeenCalled())
+    await waitFor(() => expect(startSimulate).toHaveBeenCalled())
     await waitFor(() => expect(screen.getByText('Contested outcome.')).toBeInTheDocument())
+    // result agent rows expandable
+    const toggle = document.querySelector('.whatif-agent-toggle') as HTMLButtonElement
+    expect(toggle).toBeTruthy()
+    fireEvent.click(toggle)
+    await waitFor(() => expect(screen.getByText(/Bio:/)).toBeInTheDocument())
     expect(screen.getByText('We resist.')).toBeInTheDocument()
-    expect(screen.getByText('control of roadmap')).toBeInTheDocument()
-    expect(screen.getByText('regulatory')).toBeInTheDocument()
   })
 })

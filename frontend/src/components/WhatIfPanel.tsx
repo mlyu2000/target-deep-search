@@ -1,10 +1,13 @@
 import { useState } from 'react'
-import type { GraphData, WhatIfReport } from '../types'
+import type { GraphData, WhatIfReport, WhatIfState, AgentPersonaView } from '../types'
 import { startSimulate, connectSimulateStream, getSimulateResult } from '../api/client'
+import { buildKolReport } from '../analysis/kol'
 import './WhatIfPanel.css'
 
 interface Props {
   graph: GraphData
+  state: WhatIfState
+  setState: (updater: (prev: WhatIfState) => WhatIfState) => void
 }
 
 const TEMPLATES = (target: string) => [
@@ -21,25 +24,23 @@ const REACTION_COLORS: Record<string, string> = {
   observe: 'var(--hpe-text-secondary)',
 }
 
-export default function WhatIfPanel({ graph }: Props) {
-  const [scenario, setScenario] = useState('')
-  const [rounds, setRounds] = useState(3)
-  const [autoStable, setAutoStable] = useState(false)
-  const [running, setRunning] = useState(false)
-  const [progress, setProgress] = useState('')
-  const [roundLabel, setRoundLabel] = useState('')
-  const [result, setResult] = useState<WhatIfReport | null>(null)
-  const [error, setError] = useState('')
+// Agents used by the simulation = top-6 by KOL influence (matches backend selection).
+function previewAgents(graph: GraphData) {
+  return buildKolReport(graph, 6).ranked
+}
 
+export default function WhatIfPanel({ graph, state, setState }: Props) {
+  const { scenario, rounds, autoStable, running, progress, roundLabel, result, error } = state
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const target = graph.target || 'the target'
+  const preview = previewAgents(graph)
+
+  // Rank lookup for result agents (id -> kol rank)
+  const rankById = new Map(preview.map((p) => [p.id, p.rank]))
 
   async function run() {
     if (!scenario.trim() || running) return
-    setRunning(true)
-    setError('')
-    setResult(null)
-    setProgress('Starting simulation...')
-    setRoundLabel('')
+    setState((prev) => ({ ...prev, running: true, error: '', result: null, progress: 'Starting simulation...', roundLabel: '' }))
     try {
       const { task_id } = await startSimulate({
         graph,
@@ -52,42 +53,60 @@ export default function WhatIfPanel({ graph }: Props) {
       connectSimulateStream(
         task_id,
         (u) => {
-          setProgress(u.message)
-          if (u.round) setRoundLabel(`Round ${u.round}`)
+          setState((prev) => ({ ...prev, progress: u.message, roundLabel: u.round ? `Round ${u.round}` : prev.roundLabel }))
         },
-        (e) => { setError(e.message); setRunning(false) },
+        (e) => { setState((prev) => ({ ...prev, error: e.message, running: false })) },
         async () => {
           const r = await getSimulateResult(task_id)
-          setResult(r)
-          setRunning(false)
+          setState((prev) => ({ ...prev, result: r, running: false }))
         },
       )
     } catch (e: any) {
-      setError(e?.message || 'Simulation failed')
-      setRunning(false)
+      setState((prev) => ({ ...prev, error: e?.message || 'Simulation failed', running: false }))
     }
+  }
+
+  function set(patch: Partial<WhatIfState>) {
+    setState((prev) => ({ ...prev, ...patch }))
   }
 
   return (
     <div className="whatif-panel">
       <h3>What-if Simulation</h3>
       <p className="whatif-sub">
-        Top-K influential entities from the graph become persona-grounded agents
-        (enriched via web search) and react to your scenario over {autoStable ? 'adaptive' : rounds} round(s).
+        The top {preview.length} influential entities from your graph (by KOL ranking) become
+        persona-grounded agents and react to your scenario over {autoStable ? 'adaptive' : rounds} round(s).
       </p>
+
+      <label className="whatif-label">Who will react (top-K agents)</label>
+      <div className="whatif-agents-preview">
+        {preview.map((a) => (
+          <div key={a.id} className="whatif-agent-card" title={a.reason}>
+            <div className="whatif-agent-card-head">
+              <span className="whatif-agent-rank">#{a.rank}</span>
+              <span className="whatif-agent-name">{a.name}</span>
+              <span className="whatif-agent-type">{a.type}</span>
+            </div>
+            <div className="whatif-influence">
+              <div className="whatif-influence-bar" style={{ width: `${Math.round(a.influence * 100)}%` }} />
+            </div>
+            <div className="whatif-agent-reason">{a.reason}</div>
+          </div>
+        ))}
+      </div>
 
       <label className="whatif-label">Scenario</label>
       <textarea
         className="whatif-textarea"
         value={scenario}
-        onChange={(e) => setScenario(e.target.value)}
+        onChange={(e) => set({ scenario: e.target.value })}
         placeholder={`e.g. What if ${target} is acquired by a competitor?`}
         rows={3}
       />
 
       <div className="whatif-templates">
         {TEMPLATES(target).map((t, i) => (
-          <button key={i} className="whatif-chip" onClick={() => setScenario(t)} disabled={running}>
+          <button key={i} className="whatif-chip" onClick={() => set({ scenario: t })} disabled={running}>
             {t}
           </button>
         ))}
@@ -101,7 +120,7 @@ export default function WhatIfPanel({ graph }: Props) {
               <button
                 key={n}
                 className={`whatif-round-chip ${!autoStable && rounds === n ? 'active' : ''}`}
-                onClick={() => { setRounds(n); setAutoStable(false) }}
+                onClick={() => set({ rounds: n, autoStable: false })}
                 disabled={running}
               >
                 {n}
@@ -109,7 +128,7 @@ export default function WhatIfPanel({ graph }: Props) {
             ))}
             <button
               className={`whatif-round-chip auto ${autoStable ? 'active' : ''}`}
-              onClick={() => setAutoStable(true)}
+              onClick={() => set({ autoStable: true })}
               disabled={running}
             >
               auto
@@ -117,7 +136,7 @@ export default function WhatIfPanel({ graph }: Props) {
           </div>
         </div>
         <button className="whatif-run" onClick={run} disabled={running || !scenario.trim()}>
-          {running ? 'Running…' : 'Run Simulation'}
+          {running ? 'Running…' : (result ? 'Re-run Simulation' : 'Run Simulation')}
         </button>
       </div>
 
@@ -128,22 +147,50 @@ export default function WhatIfPanel({ graph }: Props) {
       )}
       {error && <div className="whatif-error">{error}</div>}
 
-      {result && <WhatIfResult report={result} />}
+      {result && <WhatIfResult report={result} rankById={rankById} expanded={expanded} setExpanded={setExpanded} />}
     </div>
   )
 }
 
-function WhatIfResult({ report }: { report: WhatIfReport }) {
+function WhatIfResult({
+  report,
+  rankById,
+  expanded,
+  setExpanded,
+}: {
+  report: WhatIfReport
+  rankById: Map<string, number>
+  expanded: Record<string, boolean>
+  setExpanded: (u: Record<string, boolean>) => void
+}) {
   const r = report.report
+  const toggle = (id: string) => setExpanded({ ...expanded, [id]: !expanded[id] })
   return (
     <div className="whatif-result">
       <h4>Agents ({report.agents.length})</h4>
       <div className="whatif-agents">
-        {report.agents.map((a) => (
-          <div key={a.id} className="whatif-agent" title={a.bio}>
-            <span className="whatif-agent-name">{a.name}</span>
-            <span className="whatif-agent-type">{a.type}</span>
-            {a.enriched && <span className="whatif-enriched">web</span>}
+        {report.agents.map((a: AgentPersonaView) => (
+          <div key={a.id} className="whatif-agent-row">
+            <button className="whatif-agent-toggle" onClick={() => toggle(a.id)}>
+              <span className="whatif-agent-rank">#{rankById.get(a.id) ?? '?'}</span>
+              <span className="whatif-agent-name">{a.name}</span>
+              <span className="whatif-agent-type">{a.type}</span>
+              {a.enriched && <span className="whatif-enriched">web</span>}
+              <span className="whatif-chevron">{expanded[a.id] ? '▾' : '▸'}</span>
+            </button>
+            {expanded[a.id] && (
+              <div className="whatif-agent-detail">
+                <div><strong>Bio:</strong> {a.bio}</div>
+                <div><strong>Persona:</strong> {a.persona}</div>
+                <div><strong>Influence:</strong> {a.influence_weight.toFixed(2)}</div>
+                {a.traits_sourced.length > 0 && (
+                  <div><strong>From web:</strong> {a.traits_sourced.join(', ')}</div>
+                )}
+                {a.inferred.length > 0 && (
+                  <div><strong>Inferred:</strong> {a.inferred.join(', ')}</div>
+                )}
+              </div>
+            )}
           </div>
         ))}
       </div>

@@ -16,7 +16,7 @@ import type { SidebarView } from './components/AnalysisSidebar'
 import { buildGraph, getResult, connectStatusStream, listSessions } from './api/client'
 import { buildCompetitiveReport } from './analysis/competitive'
 import { buildSupplyChainReport } from './analysis/supplychain'
-import type { GraphData, Node, Session, StatusUpdate, StageInfo } from './types'
+import type { GraphData, Node, Session, StatusUpdate, StageInfo, WhatIfState } from './types'
 
 export default function App() {
   const [target, setTarget] = useState('')
@@ -31,6 +31,10 @@ export default function App() {
   const [selectedNode, setSelectedNode] = useState<Node | null>(null)
   const [sessions, setSessions] = useState<Session[]>([])
   const [activeView, setActiveView] = useState<'graph' | 'competitive' | 'supplychain' | 'kol' | 'whatif'>('graph')
+  const [whatifState, setWhatifState] = useState<WhatIfState>({
+    scenario: '', rounds: 3, autoStable: false, running: false,
+    progress: '', roundLabel: '', result: null, error: '',
+  })
   const [activeTypes, setActiveTypes] = useState<Set<string> | null>(null)
   const [highlightKOLs, setHighlightKOLs] = useState(false)
   const [logs, setLogs] = useState<LogEntry[]>([])
@@ -74,6 +78,7 @@ export default function App() {
     setStages([])
     setLogs([])
     setActiveView('graph')
+    setWhatifState({ scenario: '', rounds: 3, autoStable: false, running: false, progress: '', roundLabel: '', result: null, error: '' })
 
     const catDesc = categories.length ? ` (categories: ${categories.join(', ')})` : ''
     const pageDesc = maxPages !== 10 ? `, max pages: ${maxPages}` : ''
@@ -313,7 +318,7 @@ export default function App() {
                   )}
 
                   {activeView === 'whatif' && graphData && (
-                    <WhatIfPanel graph={graphData} />
+                    <WhatIfPanel graph={graphData} state={whatifState} setState={setWhatifState} />
                   )}
                 </div>
 

@@ -132,6 +132,7 @@ export interface AgentPersonaView {
   traits_sourced: string[]
   inferred: string[]
   enriched: boolean
+  rank?: number
 }
 
 export interface AgentStatementView {
@@ -162,5 +163,16 @@ export interface WhatIfReport {
   agents: AgentPersonaView[]
   rounds: SimulationRoundView[]
   report: SimulationReportView
+}
+
+export interface WhatIfState {
+  scenario: string
+  rounds: number
+  autoStable: boolean
+  running: boolean
+  progress: string
+  roundLabel: string
+  result: WhatIfReport | null
+  error: string
 }
 
