@@ -101,8 +101,8 @@
 }
 
 .process-step-done {
-  background: color-mix(in srgb, #01a982 15%, transparent);
-  color: #01a982;
+  background: color-mix(in srgb, var(--hpe-brand) 15%, transparent);
+  color: var(--hpe-brand);
 }
 
 .process-step-error {

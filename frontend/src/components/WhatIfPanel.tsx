@@ -15,7 +15,7 @@ const TEMPLATES = (target: string) => [
 ]
 
 const REACTION_COLORS: Record<string, string> = {
-  support: 'var(--hpe-accent, #01a982)',
+  support: 'var(--hpe-accent)',
   oppose: '#e8632c',
   neutral: 'var(--hpe-text-secondary)',
   observe: 'var(--hpe-text-secondary)',
