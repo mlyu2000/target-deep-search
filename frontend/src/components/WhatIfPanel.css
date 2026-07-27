@@ -232,7 +232,7 @@
 /* Top-K agent preview cards (before run) */
 .whatif-agents-preview {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 8px;
   margin: 8px 0 14px;
 }
@@ -262,25 +262,25 @@
   color: var(--hpe-text-secondary);
   font-size: 11px;
 }
-.whatif-influence {
-  height: 6px;
-  background: var(--hpe-border);
-  border-radius: 4px;
-  margin: 6px 0 4px;
-  overflow: hidden;
-}
-.whatif-influence-bar {
-  height: 100%;
-  background: var(--hpe-accent);
-  border-radius: 4px;
-}
-.whatif-agent-reason {
-  font-size: 10px;
-  color: var(--hpe-text-secondary);
-  line-height: 1.35;
-}
 
-/* Expandable result agent rows */
+/* Collapsible transcript block (at bottom) */
+.whatif-transcript-block {
+  margin-top: 12px;
+  border-top: 1px solid var(--hpe-border);
+  padding-top: 8px;
+}
+.whatif-collapse-toggle {
+  background: transparent;
+  border: none;
+  color: var(--hpe-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 .whatif-agent-row {
   border: 1px solid var(--hpe-border);
   border-radius: 8px;

@@ -164,6 +164,8 @@ input, select, textarea {
   flex-direction: column;
   min-width: 0;
   gap: 12px;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .app-view-tabs {

@@ -55,16 +55,15 @@ vi.mock('../../api/client', () => ({
 import WhatIfPanel from '../../components/WhatIfPanel'
 
 describe('WhatIfPanel', () => {
-  it('renders top-K agent preview cards with rank + influence before run', () => {
+  it('renders top-K agent preview cards with rank (no bar/reason) before run', () => {
     const setState = vi.fn()
     render(<WhatIfPanel graph={graph as any} state={{ scenario: '', rounds: 3, autoStable: false, running: false, progress: '', roundLabel: '', result: null, error: '' }} setState={setState} />)
-    // preview cards render ranked agents
     const cards = document.querySelectorAll('.whatif-agent-card')
     expect(cards.length).toBeGreaterThan(0)
     expect(screen.getByText('#1')).toBeInTheDocument()
-    // influence bars present
-    expect(document.querySelectorAll('.whatif-influence-bar').length).toBeGreaterThan(0)
-    // run button present
+    // bars/reason removed in what-if tab
+    expect(document.querySelectorAll('.whatif-influence-bar').length).toBe(0)
+    expect(document.querySelectorAll('.whatif-agent-reason').length).toBe(0)
     expect(screen.getByText('Run Simulation')).toBeInTheDocument()
   })
 

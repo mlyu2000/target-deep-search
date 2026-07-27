@@ -81,16 +81,12 @@ export default function WhatIfPanel({ graph, state, setState }: Props) {
       <label className="whatif-label">Who will react (top-K agents)</label>
       <div className="whatif-agents-preview">
         {preview.map((a) => (
-          <div key={a.id} className="whatif-agent-card" title={a.reason}>
+          <div key={a.id} className="whatif-agent-card">
             <div className="whatif-agent-card-head">
               <span className="whatif-agent-rank">#{a.rank}</span>
               <span className="whatif-agent-name">{a.name}</span>
               <span className="whatif-agent-type">{a.type}</span>
             </div>
-            <div className="whatif-influence">
-              <div className="whatif-influence-bar" style={{ width: `${Math.round(a.influence * 100)}%` }} />
-            </div>
-            <div className="whatif-agent-reason">{a.reason}</div>
           </div>
         ))}
       </div>
@@ -165,6 +161,7 @@ function WhatIfResult({
 }) {
   const r = report.report
   const toggle = (id: string) => setExpanded({ ...expanded, [id]: !expanded[id] })
+  const [transcriptOpen, setTranscriptOpen] = useState(true)
   return (
     <div className="whatif-result">
       <h4>Agents ({report.agents.length})</h4>
@@ -195,24 +192,6 @@ function WhatIfResult({
         ))}
       </div>
 
-      <h4>Transcript</h4>
-      <div className="whatif-transcript">
-        {report.rounds.map((round) => (
-          <div key={round.round} className="whatif-round">
-            <div className="whatif-round-head">Round {round.round}</div>
-            {round.statements.map((s, i) => (
-              <div key={i} className="whatif-statement">
-                <span className="whatif-reaction" style={{ color: REACTION_COLORS[s.reaction] || 'var(--hpe-text-secondary)' }}>
-                  {s.reaction}
-                </span>
-                <span className="whatif-agent-name">{s.agent_name}:</span>{' '}
-                <span className="whatif-statement-text">{s.statement}</span>
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
-
       {r && (
         <div className="whatif-report">
           <h4>Report</h4>
@@ -239,6 +218,30 @@ function WhatIfResult({
           {r.overall_outcome && <div className="whatif-outcome">Overall: <strong>{r.overall_outcome}</strong></div>}
         </div>
       )}
+
+      <div className="whatif-transcript-block">
+        <button className="whatif-collapse-toggle" onClick={() => setTranscriptOpen((o) => !o)}>
+          <span className="whatif-chevron">{transcriptOpen ? '▾' : '▸'}</span> Transcript ({report.rounds.length} rounds)
+        </button>
+        {transcriptOpen && (
+          <div className="whatif-transcript">
+            {report.rounds.map((round) => (
+              <div key={round.round} className="whatif-round">
+                <div className="whatif-round-head">Round {round.round}</div>
+                {round.statements.map((s, i) => (
+                  <div key={i} className="whatif-statement">
+                    <span className="whatif-reaction" style={{ color: REACTION_COLORS[s.reaction] || 'var(--hpe-text-secondary)' }}>
+                      {s.reaction}
+                    </span>
+                    <span className="whatif-agent-name">{s.agent_name}:</span>{' '}
+                    <span className="whatif-statement-text">{s.statement}</span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
