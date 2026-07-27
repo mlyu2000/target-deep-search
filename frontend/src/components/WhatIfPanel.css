@@ -88,21 +88,27 @@
 .whatif-round-chip.active {
   border-color: var(--hpe-accent);
   background: var(--hpe-accent);
-  color: #fff;
+  color: var(--hpe-accent-text);
 }
 
 .whatif-run {
   background: var(--hpe-accent);
-  color: #fff;
-  border: none;
+  color: var(--hpe-accent-text);
+  border: 1px solid var(--hpe-accent);
   border-radius: 8px;
   padding: 10px 18px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
 }
+.whatif-run:hover:not(:disabled) {
+  background: var(--hpe-accent-hover);
+  border-color: var(--hpe-accent-hover);
+}
 .whatif-run:disabled {
-  opacity: 0.5;
+  background: var(--hpe-surface);
+  color: var(--hpe-text-weak);
+  border-color: var(--hpe-border);
   cursor: default;
 }
 
@@ -167,7 +173,7 @@
 }
 .whatif-enriched {
   background: var(--hpe-accent);
-  color: #fff;
+  color: var(--hpe-accent-text);
   border-radius: 8px;
   padding: 0 6px;
   font-size: 10px;

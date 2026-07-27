@@ -30,6 +30,11 @@
   --node-location: #62e5f6;
   --node-technology: #05cc93;
   --edge-default: #b1b9be;
+
+  /* Accent for primary CTAs / active states (light theme): deep green, white text. */
+  --hpe-accent: #00875a;
+  --hpe-accent-hover: #006b47;
+  --hpe-accent-text: #ffffff;
 }
 
 [data-theme="dark"] {
@@ -50,6 +55,11 @@
   --hpe-header-bg: var(--hpe-surface);
   --hpe-header-text: var(--hpe-text-primary);
   --hpe-header-accent: var(--hpe-brand);
+
+  /* Accent used for primary CTAs / active states. High-contrast on dark bg. */
+  --hpe-accent: #06d6a0;
+  --hpe-accent-hover: #05b386;
+  --hpe-accent-text: #06241c;
 
   --edge-default: #5a6572;
 }
