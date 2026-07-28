@@ -77,6 +77,26 @@ async def _run_simulate(task_id: str, req: SimulateRequest):
             target=req.graph.get("target", ""), graph=req.graph,
         )
         results_cache[task_id] = result
+
+        # Evidence tier: deterministic, from graph richness + web enrichment coverage.
+        try:
+            enriched = sum(1 for a in result.agents if a.get("enriched"))
+            nodes = len(req.graph.get("nodes", []))
+            edges = len(req.graph.get("edges", []))
+            depth = req.graph.get("depth", 0)
+            enrich_ratio = (enriched / len(result.agents)) if result.agents else 0
+            # score 0..1
+            score = min(1.0, 0.35 * min(1.0, depth / 3.0) + 0.30 * min(1.0, nodes / 40.0)
+                        + 0.20 * min(1.0, edges / 60.0) + 0.15 * enrich_ratio)
+            tier = "strong" if score >= 0.7 else ("moderate" if score >= 0.4 else "weak")
+            result.report["evidence_tier"] = tier
+            result.report["evidence_score"] = round(score, 2)
+            result.report["enrichment_summary"] = f"{enriched}/{len(result.agents)} agents web-enriched"
+            from app.simulation.engine import check_guardrails
+            result.report["guardrail_flags"] = check_guardrails(result.report)
+        except Exception:
+            result.report["evidence_tier"] = "unknown"
+
         # Persist to saved-runs history for business review / compare.
         try:
             enriched = sum(1 for a in result.agents if a.get("enriched"))

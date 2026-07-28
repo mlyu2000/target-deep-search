@@ -165,6 +165,7 @@ function WhatIfResult({
   const r = report.report
   const toggle = (id: string) => setExpanded({ ...expanded, [id]: !expanded[id] })
   const [transcriptOpen, setTranscriptOpen] = useState(true)
+  const [execView, setExecView] = useState(false)
   function scrollToAgent(agentName: string) {
     setTranscriptOpen(true)
     setTimeout(() => {
@@ -178,7 +179,12 @@ function WhatIfResult({
   }
   return (
     <div className="whatif-result">
-      <h4>Agents ({report.agents.length})</h4>
+      <div className="whatif-result-head">
+        <h4>Agents ({report.agents.length})</h4>
+        <button className="whatif-view-toggle" onClick={() => setExecView((v) => !v)}>
+          {execView ? 'Full memo' : 'Exec view'}
+        </button>
+      </div>
       <div className="whatif-agents">
         {report.agents.map((a: AgentPersonaView) => (
           <div key={a.id} className="whatif-agent-row">
@@ -206,8 +212,9 @@ function WhatIfResult({
         ))}
       </div>
 
-      <MemoView report={report} onSource={(agent) => scrollToAgent(agent)} />
+      <MemoView report={report} onSource={(agent) => scrollToAgent(agent)} compact={execView} />
 
+      {!execView && (
       <div className="whatif-transcript-block">
         <button className="whatif-collapse-toggle" onClick={() => setTranscriptOpen((o) => !o)}>
           <span className="whatif-chevron">{transcriptOpen ? '▾' : '▸'}</span> Transcript ({report.rounds.length} rounds)
@@ -231,6 +238,7 @@ function WhatIfResult({
           </div>
         )}
       </div>
+      )}
     </div>
   )
 }

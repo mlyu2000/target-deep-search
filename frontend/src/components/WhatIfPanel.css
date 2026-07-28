@@ -260,6 +260,24 @@
   padding: 6px 10px;
 }
 
+/* Evidence tier / confidence / guardrail / view toggle */
+.whatif-result-head { display: flex; align-items: center; justify-content: space-between; }
+.whatif-view-toggle {
+  font-size: 11px; padding: 3px 10px; border-radius: 6px;
+  border: 1px solid var(--hpe-accent); background: transparent; color: var(--hpe-accent); cursor: pointer;
+}
+.whatif-view-toggle:hover { background: var(--hpe-accent); color: var(--hpe-accent-text); }
+.whatif-evidence-bar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; font-size: 11px; margin-bottom: 8px; }
+.whatif-tier { font-weight: 700; }
+.whatif-ev-meta { color: var(--hpe-text-secondary); }
+.whatif-confidence { color: var(--hpe-text-secondary); border-left: 1px solid var(--hpe-border); padding-left: 12px; }
+.whatif-guardrail {
+  background: color-mix(in srgb, #e8632c 14%, var(--hpe-surface));
+  border: 1px solid #e8632c; border-radius: 6px; padding: 6px 10px; margin-bottom: 8px;
+  font-size: 11px; color: var(--hpe-text-primary);
+}
+.whatif-guardrail-item { display: block; color: #e8632c; margin-top: 2px; }
+
 /* Top-K agent preview cards (before run) */
 .whatif-agents-preview {
   display: grid;

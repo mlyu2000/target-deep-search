@@ -156,6 +156,11 @@ export interface SimulationReportView {
   risks?: Array<{ risk: string; severity: string }>
   opportunities?: string[]
   recommended_actions?: string[]
+  confidence?: { implications?: string; risks?: string; overall?: string }
+  evidence_tier?: string
+  evidence_score?: number
+  enrichment_summary?: string
+  guardrail_flags?: Array<{ action: string; reason: string }>
   summary?: string
   positions?: Array<{ agent: string; final_stance: string; key_point: string }>
   agreement?: string[]

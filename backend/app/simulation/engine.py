@@ -80,9 +80,41 @@ Write a strategy memo as JSON:
   "risks": [{{"risk": "knock-on risk or threat", "severity": "high|medium|low"}}],
   "opportunities": ["opportunities this scenario opens for the target or others"],
   "recommended_actions": ["2-3 concrete moves the target should make now to prepare / respond"],
+  "confidence": {{"implications": "low|medium|high", "risks": "low|medium|high", "overall": "low|medium|high"}},
   "overall_outcome": "support|oppose|contested|uncertain"
 }}
 """
+
+
+# Transparent, explainable guardrail heuristic for recommended actions.
+# Flags language that suggests anti-competitive, predatory, regulatory-sensitive,
+# or unsafe moves. This is a lexical check (not an LLM judge) so it is fast and auditable.
+GUARDRAIL_TERMS = [
+    ("boycott", "suggests coordinated boycott"),
+    ("exclude competitors", "may exclude competitors"),
+    ("predatory", "predatory conduct"),
+    ("crush the competition", "aggressive elimination language"),
+    ("acquire to neutralize", "possibly anti-competitive acquisition"),
+    ("lobby to ban", "regulatory/lobbying manipulation"),
+    ("dump pricing", "predatory pricing"),
+    ("lock out", "foreclosure of rivals"),
+    ("undercut until they exit", "predatory undercutting"),
+    ("sue into bankruptcy", "litigation as weapon"),
+    ("bribe", "ethical/legal red line"),
+    ("pay off", "potential kickback language"),
+]
+
+
+def check_guardrails(report: dict) -> list[dict]:
+    """Return list of {action, reason} for any recommended action matching a guardrail term."""
+    flags: list[dict] = []
+    for action in report.get("recommended_actions", []) or []:
+        low = (action or "").lower()
+        for term, reason in GUARDRAIL_TERMS:
+            if term in low:
+                flags.append({"action": action, "reason": reason})
+                break
+    return flags
 
 
 @dataclass

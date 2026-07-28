@@ -1,19 +1,52 @@
 import type { WhatIfReport, SimulationReportView } from '../types'
 
-export default function MemoView({ report, onSource }: { report: WhatIfReport; onSource?: (agent: string) => void }) {
+const TIER_COLOR: Record<string, string> = {
+  strong: 'var(--hpe-accent)',
+  moderate: '#d6a700',
+  weak: '#e8632c',
+  unknown: 'var(--hpe-text-secondary)',
+}
+
+export default function MemoView({ report, onSource, compact }: {
+  report: WhatIfReport
+  onSource?: (agent: string) => void
+  compact?: boolean
+}) {
   const r = report.report as SimulationReportView | undefined
   if (!r) return null
   return (
     <div className="whatif-report">
+      {/* Evidence + confidence header */}
+      <div className="whatif-evidence-bar">
+        {r.evidence_tier && (
+          <span className="whatif-tier" style={{ color: TIER_COLOR[r.evidence_tier] || 'var(--hpe-text-secondary)' }}>
+            Evidence: {r.evidence_tier}
+          </span>
+        )}
+        {r.enrichment_summary && <span className="whatif-ev-meta">{r.enrichment_summary}</span>}
+        {r.confidence?.overall && (
+          <span className="whatif-confidence">Confidence: {r.confidence.overall}</span>
+        )}
+      </div>
+
+      {/* Guardrail flags */}
+      {r.guardrail_flags && r.guardrail_flags.length > 0 && (
+        <div className="whatif-guardrail">
+          ⚠ Review recommended: {r.guardrail_flags.map((g, i) => (
+            <span key={i} className="whatif-guardrail-item">“{g.action}” — {g.reason}</span>
+          ))}
+        </div>
+      )}
+
       <h4>Strategy Memo</h4>
       {r.implications_for_target && (
         <div className="whatif-memo"><strong>Implications for target:</strong> {r.implications_for_target}</div>
       )}
-      {r.how_market_reshapes && (
+      {!compact && r.how_market_reshapes && (
         <div className="whatif-memo"><strong>How the market reshapes:</strong> {r.how_market_reshapes}</div>
       )}
       {r.summary && <div className="whatif-memo"><strong>Summary:</strong> {r.summary}</div>}
-      {r.strategic_postures && r.strategic_postures.length > 0 && (
+      {!compact && r.strategic_postures && r.strategic_postures.length > 0 && (
         <div className="whatif-section">
           <strong>Strategic postures:</strong>
           <ul>
@@ -28,7 +61,7 @@ export default function MemoView({ report, onSource }: { report: WhatIfReport; o
           </ul>
         </div>
       )}
-      {r.positions && r.positions.length > 0 && (
+      {!compact && r.positions && r.positions.length > 0 && (
         <div className="whatif-section">
           <strong>Positions:</strong>
           <ul>
@@ -39,9 +72,16 @@ export default function MemoView({ report, onSource }: { report: WhatIfReport; o
         </div>
       )}
       {r.risks && r.risks.length > 0 && (
-        <div className="whatif-section"><strong>Risks:</strong><ul>{r.risks.map((x, i) => <li key={i}>[{x.severity}] {x.risk}</li>)}</ul></div>
+        <div className="whatif-section">
+          <strong>Risks:</strong>
+          <ul>
+            {r.risks.map((x, i) => (
+              <li key={i}>[{x.severity}] {x.risk}{r.confidence?.risks ? '' : ''}</li>
+            ))}
+          </ul>
+        </div>
       )}
-      {r.opportunities && r.opportunities.length > 0 && (
+      {!compact && r.opportunities && r.opportunities.length > 0 && (
         <div className="whatif-section"><strong>Opportunities:</strong><ul>{r.opportunities.map((x, i) => <li key={i}>{x}</li>)}</ul></div>
       )}
       {r.recommended_actions && r.recommended_actions.length > 0 && (
