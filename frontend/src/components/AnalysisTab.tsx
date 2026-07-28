@@ -22,6 +22,12 @@ export default function AnalysisTab({ mode, graphData, onBack }: Props) {
       : mode === 'supplychain' ? 'Supply Chain Analysis'
         : 'KOL / Influence Analysis'
 
+  // Surface each report's synthesized summary as a "Read this first" callout.
+  const summary =
+    mode === 'competitive' ? buildCompetitiveReport(graphData).summary
+      : mode === 'supplychain' ? buildSupplyChainReport(graphData).summary
+        : buildKolReport(graphData).summary
+
   return (
     <div className="analysis-tab">
       <div className="analysis-tab-header">
@@ -36,6 +42,7 @@ export default function AnalysisTab({ mode, graphData, onBack }: Props) {
             ? 'Where the target is exposed along its supply chain.'
             : 'The few entities whose moves move the target most.'}
       </p>
+      {summary && <div className="analysis-tab-readfirst">📌 {summary}</div>}
       <div className="analysis-tab-body">
         {mode === 'competitive' ? (
           <CompetitiveReport report={buildCompetitiveReport(graphData)} />

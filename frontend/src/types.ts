@@ -179,6 +179,7 @@ export interface WhatIfState {
   scenario: string
   rounds: number
   autoStable: boolean
+  fastMode: boolean
   running: boolean
   progress: string
   roundLabel: string

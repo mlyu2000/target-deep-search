@@ -141,7 +141,7 @@ async def build_personas(
     emit=None,
 ) -> list[AgentPersona]:
     """Build grounded personas for the top-K influential entities."""
-    ranked = rank_entities(graph, top_k=top_k, include_target=True)
+    ranked = rank_entities(graph, top_k=top_k, include_target=True, diverse=True)
     if not ranked:
         return []
 

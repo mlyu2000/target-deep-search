@@ -34,9 +34,27 @@ function previewAgents(graph: GraphData) {
   return buildKolReport(graph, 6).ranked
 }
 
+// Short business role of an agent relative to the target (from graph edges).
+function roleOf(graph: GraphData, id: string): string {
+  const target = graph.target.trim().toLowerCase()
+  const tId = graph.nodes.find((n) => n.name.trim().toLowerCase() === target)?.id
+  if (!tId) return ''
+  const COMPETE = new Set(['competes', 'rivals', 'competitor'])
+  const SUPPLY = new Set(['supplies', 'supplier', 'owns', 'uses', 'used_by', 'located_in', 'partnered', 'partner'])
+  for (const e of graph.edges) {
+    const other = e.source === id ? e.target : e.target === id ? e.source : null
+    if (other !== tId) continue
+    const t = (e.type || '').toLowerCase()
+    if (COMPETE.has(t)) return 'Competitor'
+    if (SUPPLY.has(t)) return 'Partner / supply'
+  }
+  return 'Connected entity'
+}
+
 export default function WhatIfPanel({ graph, state, setState, onRunComplete, memoExpanded, onMemoExpanded, displayResult }: Props) {
-  const { scenario, rounds, autoStable, running, progress, roundLabel, result, error } = state
+  const { scenario, rounds, autoStable, fastMode, running, progress, roundLabel, result, error } = state
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
+  const [showAdvanced, setShowAdvanced] = useState(false)
   const target = graph.target || 'the target'
   const preview = previewAgents(graph)
 
@@ -54,6 +72,7 @@ export default function WhatIfPanel({ graph, state, setState, onRunComplete, mem
         rounds: autoStable ? 5 : rounds,
         until_stable: autoStable,
         enrich: true,
+        fast_mode: fastMode,
       })
       connectSimulateStream(
         task_id,
@@ -93,6 +112,7 @@ export default function WhatIfPanel({ graph, state, setState, onRunComplete, mem
               <span className="whatif-agent-name">{a.name}</span>
               <span className="whatif-agent-type">{a.type}</span>
             </div>
+            <div className="whatif-agent-role">{roleOf(graph, a.id)}</div>
           </div>
         ))}
       </div>
@@ -114,33 +134,48 @@ export default function WhatIfPanel({ graph, state, setState, onRunComplete, mem
         ))}
       </div>
 
-      <div className="whatif-controls">
-        <div className="whatif-rounds">
-          <span className="whatif-label">Rounds</span>
-          <div className="whatif-round-chips">
-            {[1, 2, 3, 4, 5].map((n) => (
+      <div className="whatif-advanced">
+        <button className="whatif-advanced-toggle" onClick={() => setShowAdvanced((v) => !v)}>
+          <span className="whatif-chevron">{showAdvanced ? '▾' : '▸'}</span> Advanced options
+        </button>
+        {showAdvanced && (
+          <div className="whatif-rounds">
+            <span className="whatif-label">Rounds</span>
+            <div className="whatif-round-chips">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button
+                  key={n}
+                  className={`whatif-round-chip ${!autoStable && rounds === n ? 'active' : ''}`}
+                  onClick={() => set({ rounds: n, autoStable: false })}
+                  disabled={running}
+                >
+                  {n}
+                </button>
+              ))}
               <button
-                key={n}
-                className={`whatif-round-chip ${!autoStable && rounds === n ? 'active' : ''}`}
-                onClick={() => set({ rounds: n, autoStable: false })}
+                className={`whatif-round-chip auto ${autoStable ? 'active' : ''}`}
+                onClick={() => set({ autoStable: true })}
                 disabled={running}
               >
-                {n}
+                auto
               </button>
-            ))}
-            <button
-              className={`whatif-round-chip auto ${autoStable ? 'active' : ''}`}
-              onClick={() => set({ autoStable: true })}
-              disabled={running}
-            >
-              auto
-            </button>
+            </div>
+            <label className="whatif-fastmode">
+              <input
+                type="checkbox"
+                checked={fastMode}
+                onChange={(e) => set({ fastMode: e.target.checked })}
+                disabled={running}
+              />
+              Fast demo mode (skip web enrichment)
+            </label>
           </div>
-        </div>
-        <button className="whatif-run" onClick={run} disabled={running || !scenario.trim()}>
-          {running ? 'Running…' : (result ? 'Re-run Simulation' : 'Run Simulation')}
-        </button>
+        )}
       </div>
+
+      <button className="whatif-run" onClick={run} disabled={running || !scenario.trim()}>
+        {running ? 'Running…' : (result ? 'Re-run Simulation' : 'Run Simulation')}
+      </button>
 
       {running && (
         <div className="whatif-progress">

@@ -16,11 +16,11 @@ interface ProcessPanelProps {
 }
 
 const STAGE_LABELS: Record<string, string> = {
-  search: 'Searching',
-  fetch: 'Fetching Pages',
-  extract: 'LLM Extraction',
-  expand: 'Depth Expansion',
-  build: 'Building Graph',
+  search: 'Mapping the landscape',
+  fetch: 'Gathering sources',
+  extract: 'Reading & structuring',
+  expand: 'Deepening the map',
+  build: 'Assembling the graph',
   done: 'Complete',
 }
 

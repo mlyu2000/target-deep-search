@@ -101,6 +101,7 @@ export interface SimulateRequest {
   rounds?: number
   until_stable?: boolean
   enrich?: boolean
+  fast_mode?: boolean
 }
 
 export interface SimulateResponse {

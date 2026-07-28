@@ -4,6 +4,7 @@ import SearchInput from './components/SearchInput'
 import DepthControl from './components/DepthControl'
 import AdvancedSettings from './components/AdvancedSettings'
 import GraphViewer from './components/GraphViewer'
+import KeyTakeaways from './components/KeyTakeaways'
 import ResultsPanel from './components/ResultsPanel'
 import ProcessPanel from './components/ProcessPanel'
 import type { LogEntry } from './components/ProcessPanel'
@@ -28,9 +29,10 @@ export default function App() {
   const [graphData, setGraphData] = useState<GraphData | null>(null)
   const [selectedNode, setSelectedNode] = useState<Node | null>(null)
   const [sessions, setSessions] = useState<Session[]>([])
+  const [savedRuns, setSavedRuns] = useState<any[]>([])
   const [activeView, setActiveView] = useState<'graph' | 'competitive' | 'supplychain' | 'kol' | 'whatif'>('graph')
   const [whatifState, setWhatifState] = useState<WhatIfState>({
-    scenario: '', rounds: 3, autoStable: false, running: false,
+    scenario: '', rounds: 3, autoStable: false, fastMode: false, running: false,
     progress: '', roundLabel: '', result: null, error: '',
   })
   const [savedOpen, setSavedOpen] = useState(false)
@@ -50,6 +52,7 @@ export default function App() {
 
   useEffect(() => {
     listSessions().then((res) => setSessions(res.sessions)).catch(() => {})
+    listSavedRuns().then((res) => setSavedRuns(res.runs || [])).catch(() => {})
     return () => {
       if (cancelSse.current) cancelSse.current()
     }
@@ -80,7 +83,7 @@ export default function App() {
     setStages([])
     setLogs([])
     setActiveView('graph')
-    setWhatifState({ scenario: '', rounds: 3, autoStable: false, running: false, progress: '', roundLabel: '', result: null, error: '' })
+    setWhatifState({ scenario: '', rounds: 3, autoStable: false, fastMode: false, running: false, progress: '', roundLabel: '', result: null, error: '' })
 
     const catDesc = categories.length ? ` (categories: ${categories.join(', ')})` : ''
     const pageDesc = maxPages !== 10 ? `, max pages: ${maxPages}` : ''
@@ -188,6 +191,15 @@ export default function App() {
     }
   }, [handleSessionsChanged, taskId])
 
+  const removeSavedRun = useCallback(async (id: string) => {
+    try {
+      const { deleteSavedRun } = await import('./api/client')
+      await deleteSavedRun(id)
+      const res = await listSavedRuns()
+      setSavedRuns(res.runs || [])
+    } catch { /* best-effort */ }
+  }, [])
+
   return (
     <>
       <Header />
@@ -266,16 +278,28 @@ export default function App() {
                         <p className="app-nav-sub">Reports are computed from the {graphData.nodes.length} entities already mapped.</p>
                       </div>
 
-                      {sessions.length > 0 && (
+                      {(sessions.length > 0 || savedRuns.length > 0) && (
                         <div className="app-nav-section app-nav-history">
-                          <div className="app-nav-section-title">History</div>
+                          <div className="app-nav-section-title">My analyses</div>
                           <ul className="app-nav-history-list">
-                            {sessions.slice(0, 8).map((s) => (
-                              <li key={s.id} className="app-nav-history-item" onClick={() => handleLoadSession(s.id)}>
+                            {sessions.slice(0, 6).map((s) => (
+                              <li key={`g-${s.id}`} className="app-nav-history-item" onClick={() => handleLoadSession(s.id)}>
                                 <span className="app-nav-history-target">{s.target}</span>
+                                <span className="app-nav-tag app-nav-tag-graph">graph</span>
                                 <button
                                   className="app-nav-history-del"
                                   onClick={(e) => { e.stopPropagation(); handleDeleteSession(s.id) }}
+                                  title="Delete"
+                                >×</button>
+                              </li>
+                            ))}
+                            {savedRuns.slice(0, 6).map((r) => (
+                              <li key={`w-${r.run_id}`} className="app-nav-history-item" onClick={() => { setActiveView('whatif'); setMemoExpanded(true); setDisplayResult(r.result ?? null) }}>
+                                <span className="app-nav-history-target">{r.target}</span>
+                                <span className="app-nav-tag app-nav-tag-whatif">what-if</span>
+                                <button
+                                  className="app-nav-history-del"
+                                  onClick={(e) => { e.stopPropagation(); removeSavedRun(r.run_id) }}
                                   title="Delete"
                                 >×</button>
                               </li>
@@ -288,8 +312,8 @@ export default function App() {
                         <div className="app-nav-section-title">Library</div>
                         <button
                           className={savedOpen ? 'active' : ''}
-                          onClick={() => setSavedOpen((o) => !o)}
-                        >Saved runs</button>
+                          onClick={async () => { const res = await listSavedRuns(); setSavedRuns(res.runs || []); setSavedOpen((o) => !o) }}
+                        >Compare saved runs</button>
                       </div>
                     </>
                   )}
@@ -299,6 +323,7 @@ export default function App() {
                   <div className="app-analysis-main">
                     {activeView === 'graph' && (
                       <div className="app-graph-container">
+                        <KeyTakeaways graph={graphData} />
                         <GraphViewer
                           data={graphData}
                           onNodeClick={setSelectedNode}

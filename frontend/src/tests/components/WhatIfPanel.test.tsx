@@ -58,7 +58,7 @@ import { startSimulate } from '../../api/client'
 
 function Wrapper() {
   const [state, setState] = useState<WhatIfState>({
-    scenario: '', rounds: 3, autoStable: false, running: false,
+    scenario: '', rounds: 3, autoStable: false, fastMode: false, running: false,
     progress: '', roundLabel: '', result: null, error: '',
   })
   return <WhatIfPanel graph={graph as any} state={state} setState={setState} />
@@ -89,7 +89,7 @@ describe('WhatIfPanel', () => {
       render(
         <WhatIfPanel
           graph={graph as any}
-          state={{ scenario: 's', rounds: 1, autoStable: false, running: false, progress: '', roundLabel: '', result: result as any, error: '' }}
+          state={{ scenario: 's', rounds: 1, autoStable: false, fastMode: false, running: false, progress: '', roundLabel: '', result: result as any, error: '' }}
           setState={vi.fn()}
           memoExpanded={memoExpanded}
         />,

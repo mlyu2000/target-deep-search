@@ -77,9 +77,15 @@ def betweenness(adj: dict[str, set[str]]) -> dict[str, float]:
 
 
 def rank_entities(
-    graph: dict[str, Any], top_k: int = 6, include_target: bool = True
+    graph: dict[str, Any], top_k: int = 6, include_target: bool = True, diverse: bool = False
 ) -> list[dict[str, Any]]:
-    """Return top-K entities by blended influence, as dicts with influence 0..1."""
+    """Return top-K entities by blended influence, as dicts with influence 0..1.
+
+    If diverse=True, guarantee role variety in the panel: at least one "competitor",
+    one "supplier/customer", and one "other-influencer" are picked before filling the
+    remaining slots by raw influence. This makes the simulated debate have opposing
+    viewpoints by construction rather than a panel of near-identical hubs.
+    """
     nodes = graph.get("nodes", [])
     edges = graph.get("edges", [])
     ids = [n["id"] for n in nodes]
@@ -89,6 +95,27 @@ def rank_entities(
     name_by = {n["id"]: n.get("name", n["id"]) for n in nodes}
     type_by = {n["id"]: n.get("type", "organization") for n in nodes}
     mentions_by = {n["id"]: int(n.get("mention_count", 0)) for n in nodes}
+    target = (graph.get("target") or "").strip().lower()
+
+    # Role of each entity relative to the target (for diversity).
+    COMPETE = {"competes", "rivals", "competitor"}
+    SUPPLY = {"supplies", "supplier", "owns", "uses", "used_by", "located_in", "partnered", "partner"}
+    role_of: dict[str, str] = {}
+    for e in edges:
+        s, t = e.get("source"), e.get("target")
+        etype = (e.get("type") or "").lower()
+        sn = name_by.get(s, "").lower()
+        tn = name_by.get(t, "").lower()
+        if sn == target or tn == target:
+            other = t if sn == target else s
+            if other in role_of:
+                continue
+            if etype in COMPETE or type_by.get(other) == type_by.get([i for i in ids if name_by[i].lower() == target][0] if target else "", "organization"):
+                role_of[other] = "competitor"
+            elif etype in SUPPLY:
+                role_of[other] = "supply"
+            else:
+                role_of[other] = "other"
 
     adj: dict[str, set[str]] = {i: set() for i in ids}
     weighted_deg = {i: 0.0 for i in ids}
@@ -122,15 +149,35 @@ def rank_entities(
             "pagerank": pr.get(i, 0.0),
             "betweenness": bt.get(i, 0.0),
             "influence": influence,
+            "role": role_of.get(i, "hub"),
         })
 
     metrics.sort(key=lambda m: m["influence"], reverse=True)
-    selected = metrics[:top_k]
+    if include_target:
+        target_id = next((m["id"] for m in metrics if m["name"].lower() == target), None)
+        if target_id:
+            for m in metrics:
+                if m["id"] == target_id:
+                    m["role"] = "target"
+                    break
+
+    if diverse and len(metrics) > top_k:
+        buckets: dict[str, Any] = {"competitor": None, "supply": None, "other": None}
+        for m in metrics:
+            r = m["role"]
+            if r in buckets and buckets[r] is None:
+                buckets[r] = m
+        diverse_picks: list[dict[str, Any]] = [b for b in buckets.values() if b is not None]  # type: ignore[list-item]
+        rest: list[dict[str, Any]] = [m for m in metrics if m not in diverse_picks]
+        # keep target always if present
+        selected = diverse_picks + rest
+        selected = selected[:top_k]
+    else:
+        selected = metrics[:top_k]
+
     if not include_target:
-        target = (graph.get("target") or "").strip().lower()
         selected = [m for m in selected if m["name"].lower() != target][:top_k]
     return selected
-
 
 if __name__ == "__main__":
     g = {

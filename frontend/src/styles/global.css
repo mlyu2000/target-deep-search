@@ -386,3 +386,44 @@ input, select, textarea {
   cursor: pointer; font-size: 14px; line-height: 1; padding: 0 2px;
 }
 .app-nav-history-del:hover { color: #c0392b; }
+
+/* Unified "My analyses" type chips */
+.app-nav-tag {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 1px 6px;
+  border-radius: 999px;
+  margin-left: 6px;
+  flex-shrink: 0;
+}
+.app-nav-tag-graph { background: color-mix(in srgb, var(--hpe-accent) 18%, transparent); color: var(--hpe-accent); }
+.app-nav-tag-whatif { background: #fff4e5; color: #b45309; }
+
+/* Graph "Key takeaways" business strip */
+.key-takeaways {
+  background: var(--hpe-surface);
+  border: 1px solid var(--hpe-border);
+  border-left: 3px solid var(--hpe-accent);
+  border-radius: var(--hpe-radius);
+  padding: 10px 14px;
+  margin-bottom: 10px;
+}
+.key-takeaways-head { display: flex; flex-direction: column; gap: 3px; }
+.key-takeaways-title {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--hpe-text-secondary); font-weight: 700;
+}
+.key-takeaways-narrative { font-size: 13px; color: var(--hpe-text-primary); line-height: 1.4; }
+.key-takeaways-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.key-takeaway-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--hpe-bg); border: 1px solid var(--hpe-border);
+  border-radius: 999px; padding: 3px 10px; font-size: 12px;
+}
+.key-takeaway-rank { color: var(--hpe-accent); font-weight: 700; }
+.key-takeaway-name { font-weight: 600; color: var(--hpe-text-primary); }
+.key-takeaway-type {
+  color: var(--hpe-text-secondary); font-size: 10px; text-transform: uppercase;
+  border-left: 1px solid var(--hpe-border); padding-left: 6px;
+}

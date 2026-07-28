@@ -39,6 +39,7 @@ class SimulateRequest(BaseModel):
     rounds: int = 3
     until_stable: bool = False
     enrich: bool = True
+    fast_mode: bool = False
 
 
 @router.post("/simulate")
@@ -65,15 +66,17 @@ async def _run_simulate(task_id: str, req: SimulateRequest):
         llm = LLMService()
         crawler = Crawler()
         await emit("simulating", "Selecting top agents from graph...", 0)
+        # Fast demo mode: skip web enrichment (the slowest step) to keep builds snappy.
         personas = await build_personas(
-            req.graph, llm, top_k=req.top_k, enrich=req.enrich, crawler=crawler, emit=emit
+            req.graph, llm, top_k=req.top_k, enrich=(req.enrich and not req.fast_mode),
+            crawler=crawler, emit=emit,
         )
         if not personas:
             await emit("error", "No agents could be built from the graph")
             return
         result = await run_simulation(
             personas, req.scenario, llm, rounds=req.rounds,
-            until_stable=req.until_stable, emit=emit,
+            until_stable=(req.until_stable and not req.fast_mode), emit=emit,
             target=req.graph.get("target", ""), graph=req.graph,
         )
         results_cache[task_id] = result
