@@ -1,4 +1,4 @@
-import type { BuildResponse, GraphData, Session, StatusUpdate, AnalyzerMode, WhatIfReport } from '../types'
+import type { BuildResponse, GraphData, Session, StatusUpdate, AnalyzerMode, WhatIfReport, SavedSimRunSummary, SavedSimRunFull } from '../types'
 
 const API_BASE = '/api'
 
@@ -148,4 +148,16 @@ export function connectSimulateStream(
 
 export async function getSimulateResult(taskId: string): Promise<WhatIfReport> {
   return request<WhatIfReport>(`/simulate/result/${taskId}`)
+}
+
+export async function listSavedRuns(): Promise<{ runs: SavedSimRunSummary[] }> {
+  return request<{ runs: SavedSimRunSummary[] }>('/simulate/runs')
+}
+
+export async function getSavedRun(runId: string): Promise<SavedSimRunFull> {
+  return request<SavedSimRunFull>(`/simulate/runs/${runId}`)
+}
+
+export async function deleteSavedRun(runId: string): Promise<{ ok: boolean }> {
+  return request<{ ok: boolean }>(`/simulate/runs/${runId}`, { method: 'DELETE' })
 }

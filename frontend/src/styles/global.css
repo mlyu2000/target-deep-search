@@ -188,6 +188,35 @@ input, select, textarea {
 }
 
 .app-graph-toolbar {
+
+/* Saved Runs panel */
+.saved-runs {
+  margin-top: 12px;
+  background: var(--hpe-surface);
+  border: 1px solid var(--hpe-border);
+  border-radius: 10px;
+  padding: 14px;
+}
+.saved-runs h3 { margin: 0 0 10px; color: var(--hpe-text-primary); }
+.saved-error { color: #e8632c; font-size: 12px; }
+.saved-empty, .saved-hint { color: var(--hpe-text-secondary); font-size: 13px; }
+.saved-layout { display: grid; grid-template-columns: 320px 1fr; gap: 16px; }
+.saved-list { display: flex; flex-direction: column; gap: 8px; max-height: 70vh; overflow-y: auto; }
+.saved-item { border: 1px solid var(--hpe-border); border-radius: 8px; padding: 8px; background: var(--hpe-bg); }
+.saved-item.active { border-color: var(--hpe-accent); }
+.saved-item-head { cursor: pointer; }
+.saved-target { font-weight: 700; color: var(--hpe-text-primary); }
+.saved-scenario { font-size: 12px; color: var(--hpe-text-primary); margin: 2px 0; }
+.saved-meta { font-size: 10px; color: var(--hpe-text-secondary); }
+.saved-item-actions { display: flex; gap: 6px; margin-top: 6px; }
+.saved-item-actions button { font-size: 11px; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--hpe-border); background: var(--hpe-surface); color: var(--hpe-text-primary); cursor: pointer; }
+.saved-item-actions button.cmp-on { background: var(--hpe-accent); color: var(--hpe-accent-text); border-color: var(--hpe-accent); }
+.saved-item-actions button.del { color: #e8632c; }
+.saved-detail { border-left: 1px solid var(--hpe-border); padding-left: 16px; max-height: 78vh; overflow-y: auto; }
+.saved-detail-head { font-size: 13px; color: var(--hpe-text-secondary); margin-bottom: 8px; }
+.compare-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.compare-col { border: 1px solid var(--hpe-border); border-radius: 8px; padding: 10px; }
+.compare-title { font-size: 12px; font-weight: 600; color: var(--hpe-text-primary); margin-bottom: 8px; }
   position: absolute;
   top: 12px;
   right: 12px;

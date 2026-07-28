@@ -22,6 +22,7 @@ from app.crawler import Crawler
 from app.llm_service import LLMService
 from app.simulation.engine import SimulationResult, run_simulation
 from app.simulation.persona import build_personas
+from app.simulation.history import save_run, list_runs, get_run, delete_run
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +77,20 @@ async def _run_simulate(task_id: str, req: SimulateRequest):
             target=req.graph.get("target", ""), graph=req.graph,
         )
         results_cache[task_id] = result
+        # Persist to saved-runs history for business review / compare.
+        try:
+            enriched = sum(1 for a in result.agents if a.get("enriched"))
+            save_run(
+                target=req.graph.get("target", ""),
+                scenario=req.scenario,
+                rounds=len(result.rounds),
+                graph_depth=req.graph.get("depth", 0),
+                agents_count=len(result.agents),
+                enriched_count=enriched,
+                result=result.to_dict(),
+            )
+        except Exception as e:  # history is best-effort; never break the run
+            logger.warning("Failed to save sim run to history: %s", e)
         await emit("complete", f"Simulation complete: {len(result.rounds)} rounds, {len(personas)} agents")
     except Exception as e:
         logger.exception("Simulation failed")
@@ -108,3 +123,23 @@ async def get_result(task_id: str):
     if task_id not in status_queues:
         raise HTTPException(status_code=404, detail="Task not found")
     raise HTTPException(status_code=409, detail="Simulation still running")
+
+
+@router.get("/simulate/runs")
+async def list_saved_runs():
+    return {"runs": list_runs()}
+
+
+@router.get("/simulate/runs/{run_id}")
+async def get_saved_run(run_id: str):
+    run = get_run(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="Saved run not found")
+    return run
+
+
+@router.delete("/simulate/runs/{run_id}")
+async def delete_saved_run(run_id: str):
+    if delete_run(run_id):
+        return {"ok": True}
+    raise HTTPException(status_code=404, detail="Saved run not found")

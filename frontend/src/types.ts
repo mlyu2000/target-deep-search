@@ -181,3 +181,18 @@ export interface WhatIfState {
   error: string
 }
 
+export interface SavedSimRunSummary {
+  run_id: string
+  target: string
+  scenario: string
+  rounds: number
+  graph_depth?: number
+  agents_count?: number
+  enriched_count?: number
+  created_at?: string
+}
+
+export interface SavedSimRunFull extends SavedSimRunSummary {
+  result: WhatIfReport
+}
+

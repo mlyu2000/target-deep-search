@@ -12,6 +12,8 @@ import SessionList from './components/SessionList'
 import AnalysisSidebar from './components/AnalysisSidebar'
 import AnalysisTab from './components/AnalysisTab'
 import WhatIfPanel from './components/WhatIfPanel'
+import SavedRunsPanel from './components/SavedRunsPanel'
+import { listSavedRuns } from './api/client'
 import type { SidebarView } from './components/AnalysisSidebar'
 import { buildGraph, getResult, connectStatusStream, listSessions } from './api/client'
 import { buildCompetitiveReport } from './analysis/competitive'
@@ -35,6 +37,8 @@ export default function App() {
     scenario: '', rounds: 3, autoStable: false, running: false,
     progress: '', roundLabel: '', result: null, error: '',
   })
+  const [savedOpen, setSavedOpen] = useState(false)
+  const refreshSavedRuns = useCallback(() => { /* SavedRunsPanel self-refreshes on open */ }, [])
   const [activeTypes, setActiveTypes] = useState<Set<string> | null>(null)
   const [highlightKOLs, setHighlightKOLs] = useState(false)
   const [logs, setLogs] = useState<LogEntry[]>([])
@@ -256,6 +260,10 @@ export default function App() {
                       onClick={() => setActiveView('whatif')}
                       className={activeView === 'whatif' ? 'active' : ''}
                     >What-if</button>
+                    <button
+                      onClick={() => { setSavedOpen((o) => !o) }}
+                      className={savedOpen ? 'active' : ''}
+                    >Saved runs</button>
                   </div>
 
                   {activeView === 'graph' && (
@@ -318,9 +326,13 @@ export default function App() {
                   )}
 
                   {activeView === 'whatif' && graphData && (
-                    <WhatIfPanel graph={graphData} state={whatifState} setState={setWhatifState} />
+                    <WhatIfPanel graph={graphData} state={whatifState} setState={setWhatifState} onRunComplete={() => { /* saved automatically; panel refreshes when opened */ }} />
                   )}
                 </div>
+
+                {savedOpen && graphData && (
+                  <SavedRunsPanel />
+                )}
 
                 <AnalysisSidebar
                   graphData={graphData}
