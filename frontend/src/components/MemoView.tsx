@@ -1,6 +1,6 @@
 import type { WhatIfReport, SimulationReportView } from '../types'
 
-export default function MemoView({ report }: { report: WhatIfReport }) {
+export default function MemoView({ report, onSource }: { report: WhatIfReport; onSource?: (agent: string) => void }) {
   const r = report.report as SimulationReportView | undefined
   if (!r) return null
   return (
@@ -18,7 +18,12 @@ export default function MemoView({ report }: { report: WhatIfReport }) {
           <strong>Strategic postures:</strong>
           <ul>
             {r.strategic_postures.map((p, i) => (
-              <li key={i}><em>{p.agent}</em> ({p.stance}): {p.move}</li>
+              <li key={i}>
+                <em>{p.agent}</em> ({p.stance}): {p.move}
+                {onSource && (
+                  <button className="whatif-source-chip" onClick={() => onSource(p.agent)} title="Jump to transcript">↩ {p.agent}</button>
+                )}
+              </li>
             ))}
           </ul>
         </div>

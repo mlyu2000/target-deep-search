@@ -143,3 +143,53 @@ async def delete_saved_run(run_id: str):
     if delete_run(run_id):
         return {"ok": True}
     raise HTTPException(status_code=404, detail="Saved run not found")
+
+
+@router.get("/simulate/runs/{run_id}/export")
+async def export_saved_run(run_id: str, format: str = "markdown"):
+    run = get_run(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="Saved run not found")
+    r = run.get("result", {}).get("report", {})
+    lines = []
+    lines.append(f"# What-if Strategy Memo — {run.get('target', '')}")
+    lines.append("")
+    lines.append(f"**Scenario:** {run.get('scenario', '')}")
+    lines.append(f"**Rounds:** {run.get('rounds')} · **Agents:** {run.get('agents_count')} ({run.get('enriched_count')} web-enriched)")
+    lines.append("")
+    if r.get("implications_for_target"):
+        lines.append(f"## Implications for target\n{r['implications_for_target']}\n")
+    if r.get("how_market_reshapes"):
+        lines.append(f"## How the market reshapes\n{r['how_market_reshapes']}\n")
+    if r.get("strategic_postures"):
+        lines.append("## Strategic postures")
+        for p in r["strategic_postures"]:
+            lines.append(f"- **{p.get('agent')}** ({p.get('stance')}): {p.get('move')}")
+        lines.append("")
+    if r.get("risks"):
+        lines.append("## Risks")
+        for x in r["risks"]:
+            lines.append(f"- [{x.get('severity')}] {x.get('risk')}")
+        lines.append("")
+    if r.get("opportunities"):
+        lines.append("## Opportunities")
+        for x in r["opportunities"]:
+            lines.append(f"- {x}")
+        lines.append("")
+    if r.get("recommended_actions"):
+        lines.append("## Recommended actions")
+        for x in r["recommended_actions"]:
+            lines.append(f"- {x}")
+        lines.append("")
+    # Transcript
+    lines.append("## Transcript")
+    for rd in run.get("result", {}).get("rounds", []):
+        lines.append(f"### Round {rd.get('round')}")
+        for s in rd.get("statements", []):
+            lines.append(f"- **{s.get('agent_name')}** ({s.get('reaction')}): {s.get('statement')}")
+        lines.append("")
+    if r.get("overall_outcome"):
+        lines.append(f"**Overall outcome:** {r['overall_outcome']}")
+    md = "\n".join(lines)
+    from fastapi.responses import PlainTextResponse
+    return PlainTextResponse(md, headers={"Content-Disposition": f"attachment; filename=whatif_{run_id}.md"})

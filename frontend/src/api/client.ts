@@ -161,3 +161,7 @@ export async function getSavedRun(runId: string): Promise<SavedSimRunFull> {
 export async function deleteSavedRun(runId: string): Promise<{ ok: boolean }> {
   return request<{ ok: boolean }>(`/simulate/runs/${runId}`, { method: 'DELETE' })
 }
+
+export function exportSavedRun(runId: string): void {
+  window.open(`${API_BASE}/simulate/runs/${runId}/export`, '_blank')
+}

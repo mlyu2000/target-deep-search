@@ -165,6 +165,17 @@ function WhatIfResult({
   const r = report.report
   const toggle = (id: string) => setExpanded({ ...expanded, [id]: !expanded[id] })
   const [transcriptOpen, setTranscriptOpen] = useState(true)
+  function scrollToAgent(agentName: string) {
+    setTranscriptOpen(true)
+    setTimeout(() => {
+      const all = Array.from(document.querySelectorAll('.whatif-transcript .whatif-statement')) as HTMLElement[]
+      const match = all.find((n) => n.querySelector('.whatif-agent-name')?.textContent === agentName)
+        || all.find((n) => n.textContent?.includes(agentName))
+      match?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      match?.classList.add('whatif-statement-flash')
+      setTimeout(() => match?.classList.remove('whatif-statement-flash'), 1200)
+    }, 50)
+  }
   return (
     <div className="whatif-result">
       <h4>Agents ({report.agents.length})</h4>
@@ -195,7 +206,7 @@ function WhatIfResult({
         ))}
       </div>
 
-      <MemoView report={report} />
+      <MemoView report={report} onSource={(agent) => scrollToAgent(agent)} />
 
       <div className="whatif-transcript-block">
         <button className="whatif-collapse-toggle" onClick={() => setTranscriptOpen((o) => !o)}>
@@ -207,7 +218,7 @@ function WhatIfResult({
               <div key={round.round} className="whatif-round">
                 <div className="whatif-round-head">Round {round.round}</div>
                 {round.statements.map((s, i) => (
-                  <div key={i} className="whatif-statement">
+                  <div key={i} id={`stmt-${round.round}-${s.agent_id}`} className="whatif-statement">
                     <span className="whatif-reaction" style={{ color: REACTION_COLORS[s.reaction] || 'var(--hpe-text-secondary)' }}>
                       {s.reaction}
                     </span>

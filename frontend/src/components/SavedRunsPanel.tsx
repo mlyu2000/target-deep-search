@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { SavedSimRunSummary, SavedSimRunFull, WhatIfReport } from '../types'
-import { listSavedRuns, getSavedRun, deleteSavedRun } from '../api/client'
+import { listSavedRuns, getSavedRun, deleteSavedRun, exportSavedRun } from '../api/client'
 import MemoView from './MemoView'
 
 export default function SavedRunsPanel() {
@@ -86,6 +86,7 @@ export default function SavedRunsPanel() {
             <div>
               <div className="saved-detail-head">
                 <strong>{full.target}</strong> — {full.scenario}
+                <button className="saved-export-btn" onClick={() => exportSavedRun(full.run_id)}>Export memo</button>
               </div>
               <MemoView report={full.result as WhatIfReport} />
             </div>

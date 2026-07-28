@@ -213,7 +213,8 @@ input, select, textarea {
 .saved-item-actions button.cmp-on { background: var(--hpe-accent); color: var(--hpe-accent-text); border-color: var(--hpe-accent); }
 .saved-item-actions button.del { color: #e8632c; }
 .saved-detail { border-left: 1px solid var(--hpe-border); padding-left: 16px; max-height: 78vh; overflow-y: auto; }
-.saved-detail-head { font-size: 13px; color: var(--hpe-text-secondary); margin-bottom: 8px; }
+.saved-detail-head { font-size: 13px; color: var(--hpe-text-secondary); margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+.saved-export-btn { font-size: 11px; padding: 3px 10px; border-radius: 6px; border: 1px solid var(--hpe-accent); background: var(--hpe-accent); color: var(--hpe-accent-text); cursor: pointer; }
 .compare-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .compare-col { border: 1px solid var(--hpe-border); border-radius: 8px; padding: 10px; }
 .compare-title { font-size: 12px; font-weight: 600; color: var(--hpe-text-primary); margin-bottom: 8px; }
