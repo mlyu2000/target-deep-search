@@ -331,7 +331,7 @@ export default function App() {
                 </div>
 
                 {savedOpen && graphData && (
-                  <SavedRunsPanel />
+                  <SavedRunsPanel onClose={() => setSavedOpen(false)} />
                 )}
 
                 <AnalysisSidebar
