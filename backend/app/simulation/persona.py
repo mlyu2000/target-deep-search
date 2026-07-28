@@ -22,10 +22,12 @@ from app.crawler import Crawler
 from app.simulation.centrality import rank_entities
 
 PERSONA_SYSTEM = (
-    "You are a persona architect for a multi-agent 'what-if' business simulation. "
-    "You build a factual, vivid character profile for a real entity drawn from a "
-    "knowledge graph. Base the persona STRICTLY on the provided evidence (graph "
-    "facts + web search context). Do not invent traits that are not supported. "
+    "You are a strategy analyst building a ROLE-PLAY profile for a real business entity that will "
+    "participate in a 'what-if' scenario simulation. You are NOT writing a corporate biography. "
+    "You are defining the entity as a STRATEGIC ACTOR: what it wants, what it depends on, what "
+    "would threaten it, and how it typically moves. Base the profile STRICTLY on the provided "
+    "evidence (graph facts + web context). Ignore trivia (headquarters, founding date, slogans, "
+    "boilerplate). Only keep traits that affect how the entity would respond to a business shock. "
     "Respond with ONLY valid JSON."
 )
 
@@ -33,25 +35,28 @@ PERSONA_USER = """Entity to role-play:
 Name: {name}
 Type: {type}
 Graph description: {description}
-Known relationships (from graph): {relations}
+Known relationships to other entities (from graph): {relations}
 
-Web search context (real, retrieved):
+Web context (real, retrieved — use ONLY for strategic posture, ignore trivia):
 {context}
 
-Build an agent persona for this entity so it can react to a business scenario in a
-panel discussion with other entities. Output JSON:
+Build a STRATEGIC ACTOR profile so this entity can react to a business scenario in a panel with
+other entities. Output JSON:
 {{
-  "bio": "2-3 sentence factual biography grounded in the evidence above",
-  "persona": "first-person role-play brief (tone, priorities, typical stance on industry moves)",
+  "bio": "1-2 sentence strategic summary (market position / role), NOT a bio",
+  "persona": "first-person strategic brief: your core interests, dependencies, red lines, and the kind of move you typically make when the market shifts",
   "stance": "neutral",
-  "traits_sourced": ["list the specific traits/facts you took from the web context"],
-  "inferred": ["anything reasonably inferred, clearly marked as inference"]
+  "interests": ["what this entity wants to protect or gain"],
+  "dependencies": ["what it relies on — suppliers, the target, customers, regulations, tech"],
+  "red_lines": ["conditions it would never accept / threats it would fight"],
+  "traits_sourced": ["specific strategic facts taken from the web context"],
+  "inferred": ["reasonable strategic inferences, clearly marked"]
 }}
 
 Rules:
-- Only use facts present in the graph description, relationships, or web context.
-- If web context is empty, rely on the graph facts and mark traits_sourced from graph.
-- Keep bio <= 60 words, persona <= 80 words.
+- No product catalog, no headquarters, no founding story.
+- Keep bio <= 40 words, persona <= 90 words, each list <= 4 items.
+- If web context is empty, rely on graph facts + reasonable inference.
 """
 
 
@@ -63,6 +68,9 @@ class AgentPersona:
     bio: str
     persona: str
     stance: str = "neutral"
+    interests: list[str] = field(default_factory=list)
+    dependencies: list[str] = field(default_factory=list)
+    red_lines: list[str] = field(default_factory=list)
     influence_weight: float = 1.0
     traits_sourced: list[str] = field(default_factory=list)
     inferred: list[str] = field(default_factory=list)
@@ -76,6 +84,9 @@ class AgentPersona:
             "bio": self.bio,
             "persona": self.persona,
             "stance": self.stance,
+            "interests": self.interests,
+            "dependencies": self.dependencies,
+            "red_lines": self.red_lines,
             "influence_weight": self.influence_weight,
             "traits_sourced": self.traits_sourced,
             "inferred": self.inferred,
@@ -102,7 +113,7 @@ async def enrich_entity(crawler: Crawler, name: str, desc: str) -> tuple[str, bo
     On any failure, returns the graph description as a safe fallback.
     """
     try:
-        results = await crawler.search(f"{name} company profile background role", max_results=5, categories=["general"])
+        results = await crawler.search(f"{name} strategic position competitive advantage dependencies recent news", max_results=5, categories=["general"])
         urls = crawler.dedupe_urls([r.url for r in results])
         pages = await crawler.fetch_pages(urls[:5])
         chunks = []
@@ -166,6 +177,9 @@ async def build_personas(
                 bio=str(data.get("bio", desc))[:400],
                 persona=str(data.get("persona", f"{m['name']} is a participant in the scenario."))[:600],
                 stance=str(data.get("stance", "neutral")),
+                interests=list(data.get("interests", []))[:4],
+                dependencies=list(data.get("dependencies", []))[:4],
+                red_lines=list(data.get("red_lines", []))[:4],
                 influence_weight=round(0.5 + m["influence"], 3),
                 traits_sourced=list(data.get("traits_sourced", []))[:8],
                 inferred=list(data.get("inferred", []))[:8],

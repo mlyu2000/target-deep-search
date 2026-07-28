@@ -228,6 +228,21 @@
   font-size: 13px;
   margin-top: 6px;
 }
+.whatif-memo {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--hpe-text-primary);
+  background: var(--hpe-surface);
+  border-left: 3px solid var(--hpe-accent);
+  padding: 6px 10px;
+  margin: 6px 0;
+  border-radius: 0 6px 6px 0;
+}
+.whatif-actions {
+  background: color-mix(in srgb, var(--hpe-accent) 8%, var(--hpe-surface));
+  border-radius: 6px;
+  padding: 6px 10px;
+}
 
 /* Top-K agent preview cards (before run) */
 .whatif-agents-preview {

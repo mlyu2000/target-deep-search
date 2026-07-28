@@ -194,8 +194,20 @@ function WhatIfResult({
 
       {r && (
         <div className="whatif-report">
-          <h4>Report</h4>
-          {r.summary && <p className="whatif-summary">{r.summary}</p>}
+          <h4>Strategy Memo</h4>
+          {r.implications_for_target && <div className="whatif-memo"><strong>Implications for target:</strong> {r.implications_for_target}</div>}
+          {r.how_market_reshapes && <div className="whatif-memo"><strong>How the market reshapes:</strong> {r.how_market_reshapes}</div>}
+          {r.summary && <div className="whatif-memo"><strong>Summary:</strong> {r.summary}</div>}
+          {r.strategic_postures && r.strategic_postures.length > 0 && (
+            <div className="whatif-section">
+              <strong>Strategic postures:</strong>
+              <ul>
+                {r.strategic_postures.map((p, i) => (
+                  <li key={i}><em>{p.agent}</em> ({p.stance}): {p.move}</li>
+                ))}
+              </ul>
+            </div>
+          )}
           {r.positions && r.positions.length > 0 && (
             <div className="whatif-section">
               <strong>Positions:</strong>
@@ -206,14 +218,20 @@ function WhatIfResult({
               </ul>
             </div>
           )}
+          {r.risks && r.risks.length > 0 && (
+            <div className="whatif-section"><strong>Risks:</strong><ul>{r.risks.map((x, i) => <li key={i}>[{x.severity}] {x.risk}</li>)}</ul></div>
+          )}
+          {r.opportunities && r.opportunities.length > 0 && (
+            <div className="whatif-section"><strong>Opportunities:</strong><ul>{r.opportunities.map((x, i) => <li key={i}>{x}</li>)}</ul></div>
+          )}
+          {r.recommended_actions && r.recommended_actions.length > 0 && (
+            <div className="whatif-section whatif-actions"><strong>Recommended actions:</strong><ul>{r.recommended_actions.map((x, i) => <li key={i}>{x}</li>)}</ul></div>
+          )}
           {r.agreement && r.agreement.length > 0 && (
             <div className="whatif-section"><strong>Agreement:</strong><ul>{r.agreement.map((x, i) => <li key={i}>{x}</li>)}</ul></div>
           )}
           {r.conflict && r.conflict.length > 0 && (
             <div className="whatif-section"><strong>Conflict:</strong><ul>{r.conflict.map((x, i) => <li key={i}>{x}</li>)}</ul></div>
-          )}
-          {r.risks && r.risks.length > 0 && (
-            <div className="whatif-section"><strong>Risks:</strong><ul>{r.risks.map((x, i) => <li key={i}>{x}</li>)}</ul></div>
           )}
           {r.overall_outcome && <div className="whatif-outcome">Overall: <strong>{r.overall_outcome}</strong></div>}
         </div>

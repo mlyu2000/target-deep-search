@@ -73,6 +73,7 @@ async def _run_simulate(task_id: str, req: SimulateRequest):
         result = await run_simulation(
             personas, req.scenario, llm, rounds=req.rounds,
             until_stable=req.until_stable, emit=emit,
+            target=req.graph.get("target", ""), graph=req.graph,
         )
         results_cache[task_id] = result
         await emit("complete", f"Simulation complete: {len(result.rounds)} rounds, {len(personas)} agents")

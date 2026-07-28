@@ -150,11 +150,16 @@ export interface SimulationRoundView {
 }
 
 export interface SimulationReportView {
+  implications_for_target?: string
+  how_market_reshapes?: string
+  strategic_postures?: Array<{ agent: string; stance: string; move: string }>
+  risks?: Array<{ risk: string; severity: string }>
+  opportunities?: string[]
+  recommended_actions?: string[]
   summary?: string
   positions?: Array<{ agent: string; final_stance: string; key_point: string }>
   agreement?: string[]
   conflict?: string[]
-  risks?: string[]
   overall_outcome?: string
 }
 

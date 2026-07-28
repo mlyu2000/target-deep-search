@@ -51,8 +51,11 @@ class TestBuildPersonas:
         llm = MagicMock()
         llm.chat_json = AsyncMock(return_value={
             "bio": "Known enterprise firm.",
-            "persona": "Acts as a cautious incumbent.",
+            "persona": "Acts as a cautious incumbent protecting its installed base.",
             "stance": "neutral",
+            "interests": ["protect enterprise installed base"],
+            "dependencies": ["supply chain", "channel partners"],
+            "red_lines": ["never abandon enterprise customers"],
             "traits_sourced": ["from web"],
             "inferred": [],
         })
@@ -60,6 +63,8 @@ class TestBuildPersonas:
         personas = await build_personas(SAMPLE_GRAPH, llm, top_k=2, enrich=True, crawler=crawler)
         assert len(personas) == 2
         assert all(p.enriched for p in personas)
+        assert all(len(p.interests) > 0 for p in personas), "strategic interests captured"
+        assert all(len(p.dependencies) > 0 for p in personas), "dependencies captured"
         # LLM should have been called once per persona
         assert llm.chat_json.await_count == 2
 
@@ -93,16 +98,26 @@ class TestRunSimulation:
             {"reaction": "oppose", "statement": "I oppose.", "new_stance": "oppose"},
             {"reaction": "support", "statement": "Still support.", "new_stance": "support"},
             {"reaction": "neutral", "statement": "Undecided.", "new_stance": "neutral"},
-            # report call
-            {"summary": "Mixed.", "positions": [], "agreement": [], "conflict": [], "risks": [], "overall_outcome": "contested"},
+            # report call (strategy memo)
+            {
+                "implications_for_target": "Mixed impact on HPE.",
+                "strategic_postures": [{"agent": "A", "stance": "support", "move": "double down"}, {"agent": "B", "stance": "oppose", "move": "hedge"}],
+                "risks": [{"risk": "supply shock", "severity": "high"}],
+                "opportunities": ["new markets"],
+                "recommended_actions": ["secure supply", "diversify"],
+                "overall_outcome": "contested",
+            },
         ])
 
         # rounds=2 (no until_stable) -> 2 rounds, 2 agent calls each = 4, +1 report
-        res = await run_simulation(personas, "What if HPE merges?", llm, rounds=2, until_stable=False)
+        res = await run_simulation(personas, "What if HPE merges?", llm, rounds=2, until_stable=False, target="HPE", graph=SAMPLE_GRAPH)
         assert isinstance(res, SimulationResult)
         assert len(res.rounds) == 2
         assert llm.chat_json.await_count == 5
         assert res.report.get("overall_outcome") == "contested"
+        assert "implications_for_target" in res.report
+        assert len(res.report.get("strategic_postures", [])) == 2
+        assert len(res.report.get("recommended_actions", [])) == 2
 
     @pytest.mark.asyncio
     async def test_run_simulation_until_stable_stops(self):
