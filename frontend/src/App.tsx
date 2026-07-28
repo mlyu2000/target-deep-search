@@ -283,25 +283,35 @@ export default function App() {
                           <div className="app-nav-section-title">My analyses</div>
                           <ul className="app-nav-history-list">
                             {sessions.slice(0, 6).map((s) => (
-                              <li key={`g-${s.id}`} className="app-nav-history-item" onClick={() => handleLoadSession(s.id)}>
-                                <span className="app-nav-history-target">{s.target}</span>
-                                <span className="app-nav-tag app-nav-tag-graph">graph</span>
-                                <button
-                                  className="app-nav-history-del"
-                                  onClick={(e) => { e.stopPropagation(); handleDeleteSession(s.id) }}
-                                  title="Delete"
-                                >×</button>
+                              <li key={`g-${s.id}`} className="app-nav-history-item">
+                                <div className="app-nav-history-text" onClick={() => handleLoadSession(s.id)}>
+                                  <span className="app-nav-history-target">{s.target}</span>
+                                  <span className="app-nav-history-meta">graph · D{s.depth}</span>
+                                </div>
+                                <div className="app-nav-history-actions">
+                                  <span className="app-nav-tag app-nav-tag-graph">graph</span>
+                                  <button
+                                    className="app-nav-history-del"
+                                    onClick={(e) => { e.stopPropagation(); handleDeleteSession(s.id) }}
+                                    title="Delete"
+                                  >×</button>
+                                </div>
                               </li>
                             ))}
                             {savedRuns.slice(0, 6).map((r) => (
-                              <li key={`w-${r.run_id}`} className="app-nav-history-item" onClick={() => { setActiveView('whatif'); setMemoExpanded(true); setDisplayResult(r.result ?? null) }}>
-                                <span className="app-nav-history-target">{r.target}</span>
-                                <span className="app-nav-tag app-nav-tag-whatif">what-if</span>
-                                <button
-                                  className="app-nav-history-del"
-                                  onClick={(e) => { e.stopPropagation(); removeSavedRun(r.run_id) }}
-                                  title="Delete"
-                                >×</button>
+                              <li key={`w-${r.run_id}`} className="app-nav-history-item">
+                                <div className="app-nav-history-text" onClick={() => { setActiveView('whatif'); setMemoExpanded(true); setDisplayResult(r.result ?? null) }}>
+                                  <span className="app-nav-history-target">{r.target}</span>
+                                  <span className="app-nav-history-meta">what-if</span>
+                                </div>
+                                <div className="app-nav-history-actions">
+                                  <span className="app-nav-tag app-nav-tag-whatif">what-if</span>
+                                  <button
+                                    className="app-nav-history-del"
+                                    onClick={(e) => { e.stopPropagation(); removeSavedRun(r.run_id) }}
+                                    title="Delete"
+                                  >×</button>
+                                </div>
                               </li>
                             ))}
                           </ul>
