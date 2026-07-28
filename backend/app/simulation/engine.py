@@ -36,6 +36,11 @@ YOUR STRATEGIC ACTOR BRIEF:
 
 YOUR CURRENT STANCE: {stance}
 
+ROUND PROGRESS: this is round {round_num} of {total_rounds}.
+- Round 1: stake your initial position and opening move.
+- Middle rounds: REACT to what others said and EVOLVE — sharpen, hedge, escalate, or concede. Do NOT repeat your earlier wording.
+- Final round: commit to your resolved position and the concrete move you would execute.
+
 WHAT OTHERS SAID LAST ROUND (respond to / build on this):
 {others}
 
@@ -43,12 +48,13 @@ React to the scenario THIS round. You MUST:
 - Take a clear position: support / oppose / neutral / observe.
 - State the CONCRETE ACTION you would take if this scenario became real, and WHY (reference your dependencies / red lines / interests).
 - State how your move affects THE TARGET and the other participants.
+- This round must say something NEW vs your prior rounds: advance the debate, reveal a contingency, quantify the impact, or name a specific counterparty. Never echo your previous statement.
 - Reference the scenario directly. Do NOT list or promote your products. Do NOT give a generic biography.
 
 Output JSON:
 {{
   "reaction": "support" | "oppose" | "neutral" | "observe",
-  "statement": "your in-character reaction: position + concrete action + impact on target/others (2-3 sentences, <= 80 words)",
+  "statement": "your in-character reaction this round: position + concrete action + impact on target/others (2-3 sentences, <= 80 words; distinct from prior rounds)",
   "new_stance": "support" | "oppose" | "neutral" | "observe"
 }}
 """
@@ -158,7 +164,8 @@ def _stance_shift(prev: str, new: str) -> bool:
 
 
 async def _agent_round(
-    llm, persona: AgentPersona, scenario: str, others: str, target: str, relation: str, emit
+    llm, persona: AgentPersona, scenario: str, others: str, target: str, relation: str,
+    round_num: int, total_rounds: int, emit,
 ) -> AgentStatement:
     user = ROUND_USER.format(
         scenario=scenario,
@@ -167,9 +174,15 @@ async def _agent_round(
         persona=persona.persona,
         stance=persona.stance,
         others=others or "(this is the first round)",
+        round_num=round_num,
+        total_rounds=total_rounds,
     )
+    # Vary temperature per round so statements evolve instead of repeating.
+    # Round 1 stakes a clear position (lower temp); later rounds get more
+    # creative freedom to diverge / escalate (higher temp).
+    temperature = 0.35 + 0.12 * (round_num - 1)
     try:
-        data = await llm.chat_json(ROUND_SYSTEM, user, temperature=0.4, max_tokens=512)
+        data = await llm.chat_json(ROUND_SYSTEM, user, temperature=min(temperature, 0.75), max_tokens=512)
         reaction = str(data.get("reaction", "observe")).lower()
         if reaction not in ("support", "oppose", "neutral", "observe"):
             reaction = "observe"
@@ -241,7 +254,7 @@ async def run_simulation(
             others = "\n".join(
                 f"- {s['agent_name']}: {s['statement']}" for s in prev_round_statements if s["agent_id"] != p.id
             )
-            st = await _agent_round(llm, p, scenario, others, target, relation_to_target(p), emit)
+            st = await _agent_round(llm, p, scenario, others, target, relation_to_target(p), r, max_rounds, emit)
             st.round = r
             return st
 

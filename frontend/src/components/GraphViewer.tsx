@@ -36,6 +36,19 @@ export default function GraphViewer({ data, onNodeClick, selectedNodeId, activeT
   const containerRef = useRef<HTMLDivElement>(null)
   const svgRef = useRef<SVGSVGElement>(null)
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
+  const [hoveredId, setHoveredId] = useState<string | null>(null)
+
+  // On-load summary for instant orientation ("wow" anchor)
+  const targetKey = data.target.trim().toLowerCase()
+  const targetId = data.nodes.find((n) => n.name.trim().toLowerCase() === targetKey)?.id
+  const kolTop = highlightKOLs ? buildKolReport(data, 5).ranked : buildKolReport(data, 3).ranked
+  const typeCount = new Set(data.nodes.map((n) => n.type)).size
+  const summary = {
+    entities: data.nodes.length,
+    edges: data.edges.length,
+    types: typeCount,
+    topInfluencer: kolTop[0]?.name ?? targetId ? (data.nodes.find((n) => n.id === (kolTop[0]?.id ?? targetId))?.name ?? '') : '',
+  }
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -108,10 +121,10 @@ export default function GraphViewer({ data, onNodeClick, selectedNodeId, activeT
     svg.call(zoom)
 
     const simulation = d3.forceSimulation<SimNode>(nodes)
-      .force('link', d3.forceLink<SimNode, SimLink>(links).id((d) => d.id).distance(120))
-      .force('charge', d3.forceManyBody().strength(-300))
+      .force('link', d3.forceLink<SimNode, SimLink>(links).id((d) => d.id).distance(150))
+      .force('charge', d3.forceManyBody().strength(-380))
       .force('center', d3.forceCenter(width / 2, height / 2))
-      .force('collision', d3.forceCollide().radius(30))
+      .force('collision', d3.forceCollide().radius(46))
       .alphaDecay(0.02)
 
     const link = g.append('g')
@@ -149,15 +162,17 @@ export default function GraphViewer({ data, onNodeClick, selectedNodeId, activeT
       .attr('dy', '-4')
 
     const nodeGroup = g.append('g')
+      .attr('class', 'graph-nodes graph-enter')
       .selectAll<SVGGElement, SimNode>('g')
       .data(nodes)
       .join('g')
       .style('cursor', 'pointer')
 
     // KOL highlight: top-K most influential nodes get a larger radius + gold ring.
-    const kolTopIds = highlightKOLs
-      ? new Set(buildKolReport(data, 5).ranked.map((k) => k.id))
-      : new Set<string>()
+    // Always ring the top-3 (subtle orientation cue); ring top-5 when the checkbox is on.
+    const kolTopIds = new Set(
+      buildKolReport(data, highlightKOLs ? 5 : 3).ranked.map((k) => k.id),
+    )
 
     const radiusOf = (d: SimNode) => {
       const base = Math.max(12, Math.min(30, 10 + d.mention_count * 2))
@@ -172,7 +187,8 @@ export default function GraphViewer({ data, onNodeClick, selectedNodeId, activeT
         if (kolTopIds.has(d.id)) return '#ffb020'
         return 'none'
       })
-      .attr('stroke-width', (d) => (d.id === selectedNodeId ? 3 : kolTopIds.has(d.id) ? 3 : 0))
+      .attr('stroke-width', (d) => (d.id === selectedNodeId ? 3 : kolTopIds.has(d.id) ? 4 : 0))
+      .attr('stroke-opacity', (d) => (kolTopIds.has(d.id) ? 0.95 : 1))
       .attr('opacity', (d) => (selectedNodeId && d.id !== selectedNodeId) ? 0.3 : 1)
 
     nodeGroup.filter((d) => (d.images?.length ?? 0) > 0)
@@ -185,12 +201,28 @@ export default function GraphViewer({ data, onNodeClick, selectedNodeId, activeT
       .attr('clip-path', 'circle(8px)')
 
     nodeGroup.append('text')
+      .attr('class', 'graph-node-label')
       .text((d) => d.name)
       .attr('dx', (d) => radiusOf(d) + 6)
       .attr('dy', 4)
       .attr('font-size', '11px')
       .attr('fill', (d) => selectedNodeId && d.id !== selectedNodeId ? 'var(--hpe-text-weak)' : 'var(--hpe-text-primary)')
       .attr('font-weight', (d) => d.id === selectedNodeId ? '700' : '400')
+      // At rest: show labels only for the target + top KOLs (de-clutter the center).
+      // Other labels reveal on hover (handled below).
+      .attr('opacity', (d) => (d.id === targetId || kolTopIds.has(d.id)) ? 1 : 0)
+
+    nodeGroup
+      .on('mouseenter', function (_event, d) {
+        setHoveredId(d.id)
+        d3.select(this).select<SVGTextElement>('.graph-node-label').attr('opacity', 1)
+      })
+      .on('mouseleave', function () {
+        setHoveredId(null)
+        // restore default visibility (target + KOLs visible, rest hidden)
+        d3.select(this).select<SVGTextElement>('.graph-node-label')
+          .attr('opacity', (d: any) => (d.id === targetId || kolTopIds.has(d.id)) ? 1 : 0)
+      })
 
     nodeGroup.on('click', (_event, d) => {
       const originalNode = nodeMap.get(d.id)
@@ -237,36 +269,37 @@ export default function GraphViewer({ data, onNodeClick, selectedNodeId, activeT
 
   return (
     <div ref={containerRef} className="graph-container">
-      <svg ref={svgRef} width={dimensions.width} height={dimensions.height} />
-      <div className="graph-legend">
-        <div className="graph-legend-header">
-          <span className="graph-legend-count">
-            {typeof visibleCount === 'number' && typeof totalCount === 'number'
-              ? `Showing ${visibleCount} / ${totalCount} entities`
-              : ''}
-          </span>
+      <div className="graph-summary">
+        <span className="graph-summary-stat"><strong>{summary.entities}</strong> entities</span>
+        <span className="graph-summary-stat"><strong>{summary.edges}</strong> relationships</span>
+        <span className="graph-summary-stat"><strong>{summary.types}</strong> types</span>
+        {summary.topInfluencer && (
+          <span className="graph-summary-stat graph-summary-kol">★ Top influencer: <strong>{summary.topInfluencer}</strong></span>
+        )}
+        <div className="graph-summary-legend">
+          {(Object.entries(ENTITY_COLORS) as [EntityType, string][]).map(([type, color]) => {
+            const active = !activeTypes || activeTypes.has(type)
+            return (
+              <button
+                key={type}
+                type="button"
+                className={`graph-legend-item${active ? '' : ' inactive'}`}
+                onClick={() => onToggleType?.(type)}
+                title={active ? `Hide ${type}` : `Show ${type}`}
+              >
+                <span className="graph-legend-dot" style={{ backgroundColor: color }} />
+                {type}
+              </button>
+            )
+          })}
           {activeTypes && activeTypes.size < 5 && onResetFilters && (
             <button type="button" className="graph-legend-reset" onClick={onResetFilters}>
-              Reset filters
+              Reset
             </button>
           )}
         </div>
-        {(Object.entries(ENTITY_COLORS) as [EntityType, string][]).map(([type, color]) => {
-          const active = !activeTypes || activeTypes.has(type)
-          return (
-            <button
-              key={type}
-              type="button"
-              className={`graph-legend-item${active ? '' : ' inactive'}`}
-              onClick={() => onToggleType?.(type)}
-              title={active ? `Hide ${type}` : `Show ${type}`}
-            >
-              <span className="graph-legend-dot" style={{ backgroundColor: color }} />
-              {type}
-            </button>
-          )
-        })}
       </div>
+      <svg ref={svgRef} width={dimensions.width} height={dimensions.height} />
     </div>
   )
 }

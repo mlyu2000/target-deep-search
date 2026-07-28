@@ -9,16 +9,12 @@ import ProcessPanel from './components/ProcessPanel'
 import type { LogEntry } from './components/ProcessPanel'
 import ExportButton from './components/ExportButton'
 import SessionList from './components/SessionList'
-import AnalysisSidebar from './components/AnalysisSidebar'
 import AnalysisTab from './components/AnalysisTab'
 import WhatIfPanel from './components/WhatIfPanel'
 import SavedRunsPanel from './components/SavedRunsPanel'
 import { listSavedRuns } from './api/client'
-import type { SidebarView } from './components/AnalysisSidebar'
 import { buildGraph, getResult, connectStatusStream, listSessions } from './api/client'
-import { buildCompetitiveReport } from './analysis/competitive'
-import { buildSupplyChainReport } from './analysis/supplychain'
-import type { GraphData, Node, Session, StatusUpdate, StageInfo, WhatIfState } from './types'
+import type { GraphData, Node, Session, StatusUpdate, StageInfo, WhatIfState, WhatIfReport } from './types'
 
 export default function App() {
   const [target, setTarget] = useState('')
@@ -38,7 +34,9 @@ export default function App() {
     progress: '', roundLabel: '', result: null, error: '',
   })
   const [savedOpen, setSavedOpen] = useState(false)
-  const refreshSavedRuns = useCallback(() => { /* SavedRunsPanel self-refreshes on open */ }, [])
+  const [navCollapsed, setNavCollapsed] = useState(false)
+  const [memoExpanded, setMemoExpanded] = useState(false)
+  const [displayResult, setDisplayResult] = useState<WhatIfReport | null>(null)
   const [activeTypes, setActiveTypes] = useState<Set<string> | null>(null)
   const [highlightKOLs, setHighlightKOLs] = useState(false)
   const [logs, setLogs] = useState<LogEntry[]>([])
@@ -178,10 +176,23 @@ export default function App() {
     setActiveTypes(null)
   }, [])
 
+  const handleDeleteSession = useCallback(async (id: string) => {
+    const { deleteSession } = await import('./api/client')
+    await deleteSession(id)
+    handleSessionsChanged()
+    if (taskId === id) {
+      setGraphData(null)
+      setStatus('idle')
+      setStages([])
+      setLogs([])
+    }
+  }, [handleSessionsChanged, taskId])
+
   return (
     <>
       <Header />
       <main className="app-main">
+        {(status === 'idle') && (
         <section className="app-header-section">
           <h1 className="app-subtitle">
             Explore relationships between people, organizations, and more
@@ -191,7 +202,6 @@ export default function App() {
               value={target}
               onChange={setTarget}
               onSubmit={(val) => handleSearch(val, depth)}
-              disabled={status === 'building'}
             />
           </div>
           <AdvancedSettings
@@ -203,23 +213,14 @@ export default function App() {
             onCategoriesChange={setCategories}
           />
         </section>
+        )}
 
         <section className="app-content-section">
           <SessionList
             sessions={sessions}
             onSelect={handleLoadSession}
             onClear={handleClearSessions}
-            onDelete={async (id) => {
-              const { deleteSession } = await import('./api/client')
-              await deleteSession(id)
-              handleSessionsChanged()
-              if (taskId === id) {
-                setGraphData(null)
-                setStatus('idle')
-                setStages([])
-                setLogs([])
-              }
-            }}
+            onDelete={handleDeleteSession}
           />
 
           <div className="app-content-main">
@@ -237,108 +238,132 @@ export default function App() {
             )}
 
             {graphData && (
-              <div className="app-analysis-layout">
-                <div className="app-analysis-main">
-                  <div className="app-view-tabs">
-                    <button
-                      onClick={() => setActiveView('graph')}
-                      className={activeView === 'graph' ? 'active' : ''}
-                    >Graph</button>
-                    <button
-                      onClick={() => setActiveView('competitive')}
-                      className={activeView === 'competitive' ? 'active' : ''}
-                    >Competitive</button>
-                    <button
-                      onClick={() => setActiveView('supplychain')}
-                      className={activeView === 'supplychain' ? 'active' : ''}
-                    >Supply Chain</button>
-                    <button
-                      onClick={() => setActiveView('kol')}
-                      className={activeView === 'kol' ? 'active' : ''}
-                    >KOL</button>
-                    <button
-                      onClick={() => setActiveView('whatif')}
-                      className={activeView === 'whatif' ? 'active' : ''}
-                    >What-if</button>
-                    <button
-                      onClick={() => { setSavedOpen((o) => !o) }}
-                      className={savedOpen ? 'active' : ''}
-                    >Saved runs</button>
+              <div className={`app-analysis-layout ${navCollapsed ? 'nav-collapsed' : ''}`}>
+                {/* Single consolidated left panel: navigation + targeted analysis */}
+                <nav className="app-left-nav">
+                  <button
+                    className="app-nav-collapse"
+                    onClick={() => setNavCollapsed((c) => !c)}
+                    title={navCollapsed ? 'Expand panel' : 'Collapse panel'}
+                  >
+                    {navCollapsed ? '»' : '«'}
+                  </button>
+
+                  {!navCollapsed && (
+                    <>
+                      <button
+                        className="app-nav-newsearch"
+                        onClick={() => { setGraphData(null); setStatus('idle'); setActiveTypes(null); setActiveView('graph'); setStages([]); setLogs([]) }}
+                      >+ New search</button>
+
+                      <div className="app-nav-section">
+                        <div className="app-nav-section-title">Explore</div>
+                        <button onClick={() => setActiveView('graph')} className={activeView === 'graph' ? 'active' : ''}>Graph</button>
+                        <button onClick={() => setActiveView('competitive')} className={activeView === 'competitive' ? 'active' : ''}>Competitive</button>
+                        <button onClick={() => setActiveView('supplychain')} className={activeView === 'supplychain' ? 'active' : ''}>Supply Chain</button>
+                        <button onClick={() => setActiveView('kol')} className={activeView === 'kol' ? 'active' : ''}>KOL</button>
+                        <button onClick={() => setActiveView('whatif')} className={activeView === 'whatif' ? 'active' : ''}>What-if</button>
+                        <p className="app-nav-sub">Reports are computed from the {graphData.nodes.length} entities already mapped.</p>
+                      </div>
+
+                      {sessions.length > 0 && (
+                        <div className="app-nav-section app-nav-history">
+                          <div className="app-nav-section-title">History</div>
+                          <ul className="app-nav-history-list">
+                            {sessions.slice(0, 8).map((s) => (
+                              <li key={s.id} className="app-nav-history-item" onClick={() => handleLoadSession(s.id)}>
+                                <span className="app-nav-history-target">{s.target}</span>
+                                <button
+                                  className="app-nav-history-del"
+                                  onClick={(e) => { e.stopPropagation(); handleDeleteSession(s.id) }}
+                                  title="Delete"
+                                >×</button>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      <div className="app-nav-section">
+                        <div className="app-nav-section-title">Library</div>
+                        <button
+                          className={savedOpen ? 'active' : ''}
+                          onClick={() => setSavedOpen((o) => !o)}
+                        >Saved runs</button>
+                      </div>
+                    </>
+                  )}
+                </nav>
+
+                <div className="app-content-main">
+                  <div className="app-analysis-main">
+                    {activeView === 'graph' && (
+                      <div className="app-graph-container">
+                        <GraphViewer
+                          data={graphData}
+                          onNodeClick={setSelectedNode}
+                          selectedNodeId={selectedNode?.id ?? null}
+                          activeTypes={activeTypes ?? undefined}
+                          onToggleType={toggleType}
+                          onResetFilters={() => setActiveTypes(null)}
+                          highlightKOLs={highlightKOLs}
+                          totalCount={graphData.nodes.length}
+                          visibleCount={
+                            activeTypes
+                              ? graphData.nodes.filter(
+                                  (n) =>
+                                    activeTypes.has(n.type) ||
+                                    n.name.trim().toLowerCase() === graphData.target.trim().toLowerCase(),
+                                ).length
+                              : graphData.nodes.length
+                          }
+                        />
+                        <div className="app-graph-toolbar">
+                          <label className="app-kol-toggle">
+                            <input
+                              type="checkbox"
+                              checked={highlightKOLs}
+                              onChange={(e) => setHighlightKOLs(e.target.checked)}
+                            />
+                            Highlight top KOLs
+                          </label>
+                          {taskId && <ExportButton taskId={taskId} />}
+                        </div>
+                      </div>
+                    )}
+
+                    {activeView === 'competitive' && graphData && (
+                      <AnalysisTab mode="competitive" graphData={graphData} onBack={() => setActiveView('graph')} />
+                    )}
+
+                    {activeView === 'supplychain' && graphData && (
+                      <AnalysisTab mode="supplychain" graphData={graphData} onBack={() => setActiveView('graph')} />
+                    )}
+
+                    {activeView === 'kol' && graphData && (
+                      <AnalysisTab mode="kol" graphData={graphData} onBack={() => setActiveView('graph')} />
+                    )}
+
+                    {activeView === 'whatif' && graphData && (
+                      <WhatIfPanel
+                        graph={graphData}
+                        state={whatifState}
+                        setState={setWhatifState}
+                        memoExpanded={memoExpanded}
+                        onMemoExpanded={() => setMemoExpanded(true)}
+                        displayResult={displayResult}
+                        onRunComplete={() => { setMemoExpanded(false); setDisplayResult(null) }}
+                      />
+                    )}
                   </div>
 
-                  {activeView === 'graph' && (
-                    <div className="app-graph-container">
-                      <GraphViewer
-                        data={graphData}
-                        onNodeClick={setSelectedNode}
-                        selectedNodeId={selectedNode?.id ?? null}
-                        activeTypes={activeTypes ?? undefined}
-                        onToggleType={toggleType}
-                        onResetFilters={() => setActiveTypes(null)}
-                        highlightKOLs={highlightKOLs}
-                        totalCount={graphData.nodes.length}
-                        visibleCount={
-                          activeTypes
-                            ? graphData.nodes.filter(
-                                (n) =>
-                                  activeTypes.has(n.type) ||
-                                  n.name.trim().toLowerCase() === graphData.target.trim().toLowerCase(),
-                              ).length
-                            : graphData.nodes.length
-                        }
-                      />
-                      <div className="app-graph-toolbar">
-                        <label className="app-kol-toggle">
-                          <input
-                            type="checkbox"
-                            checked={highlightKOLs}
-                            onChange={(e) => setHighlightKOLs(e.target.checked)}
-                          />
-                          Highlight top KOLs
-                        </label>
-                        {taskId && <ExportButton taskId={taskId} />}
-                      </div>
-                    </div>
-                  )}
-
-                  {activeView === 'competitive' && graphData && (
-                    <AnalysisTab
-                      mode="competitive"
-                      graphData={graphData}
-                      onBack={() => setActiveView('graph')}
+                  {savedOpen && graphData && (
+                    <SavedRunsPanel
+                      onClose={() => setSavedOpen(false)}
+                      onSelectRun={(f) => { setActiveView('whatif'); setMemoExpanded(true); setDisplayResult(f.result ?? null) }}
                     />
-                  )}
-
-                  {activeView === 'supplychain' && graphData && (
-                    <AnalysisTab
-                      mode="supplychain"
-                      graphData={graphData}
-                      onBack={() => setActiveView('graph')}
-                    />
-                  )}
-
-                  {activeView === 'kol' && graphData && (
-                    <AnalysisTab
-                      mode="kol"
-                      graphData={graphData}
-                      onBack={() => setActiveView('graph')}
-                    />
-                  )}
-
-                  {activeView === 'whatif' && graphData && (
-                    <WhatIfPanel graph={graphData} state={whatifState} setState={setWhatifState} onRunComplete={() => { /* saved automatically; panel refreshes when opened */ }} />
                   )}
                 </div>
-
-                {savedOpen && graphData && (
-                  <SavedRunsPanel onClose={() => setSavedOpen(false)} />
-                )}
-
-                <AnalysisSidebar
-                  graphData={graphData}
-                  activeView={activeView === 'graph' ? 'competitive' : (activeView as SidebarView)}
-                  onSelect={(view) => setActiveView(view)}
-                />
               </div>
             )}
 

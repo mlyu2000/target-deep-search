@@ -39,6 +39,15 @@
   font-style: italic;
 }
 
+.analysis-tab-hook {
+  margin: 0;
+  padding: 8px 16px;
+  font-size: 13px;
+  color: var(--hpe-text-secondary);
+  border-bottom: 1px solid var(--hpe-border);
+  background: var(--hpe-bg);
+}
+
 .analysis-tab-body {
   flex: 1;
   overflow-y: auto;

@@ -11,50 +11,25 @@
   display: block;
 }
 
-.graph-legend {
-  position: absolute;
-  bottom: 12px;
-  left: 12px;
+.graph-summary {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  padding: 8px 12px;
+  align-items: center;
+  gap: 10px 16px;
+  padding: 10px 14px;
   background: var(--hpe-surface);
   border: 1px solid var(--hpe-border);
   border-radius: var(--hpe-radius);
-  max-width: 70%;
-  z-index: 10;
-}
-
-.graph-legend-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
+  margin-bottom: 10px;
   font-size: 12px;
   color: var(--hpe-text-secondary);
 }
+.graph-summary-stat strong { color: var(--hpe-text-primary); font-size: 13px; }
+.graph-summary-kol { color: #b8860b; }
+.graph-summary-kol strong { color: #d97706; }
+.graph-summary-legend { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
 
-.graph-legend-count {
-  font-weight: 600;
-  color: var(--hpe-text-primary);
-}
-
-.graph-legend-reset {
-  background: var(--hpe-surface-alt);
-  border: 1px solid var(--hpe-border);
-  color: var(--hpe-text-primary);
-  border-radius: var(--hpe-radius);
-  padding: 3px 8px;
-  font-size: 11px;
-  cursor: pointer;
-}
-.graph-legend-reset:hover {
-  border-color: var(--hpe-brand);
-}
-
-.graph-legend-item {
+.graph-summary-legend .graph-legend-item {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -65,27 +40,40 @@
   border-radius: 6px;
   padding: 2px 6px;
   cursor: pointer;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-family: var(--hpe-font);
   transition: background var(--hpe-transition), opacity var(--hpe-transition);
 }
-
-.graph-legend-item:hover {
-  background: var(--hpe-hover);
+.graph-summary-legend .graph-legend-item:hover { background: var(--hpe-hover); }
+.graph-summary-legend .graph-legend-item.inactive { opacity: 0.4; }
+.graph-summary-legend .graph-legend-item.inactive .graph-legend-dot { background: var(--hpe-text-weak) !important; }
+.graph-summary-legend .graph-legend-dot {
+  width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0;
 }
-
-.graph-legend-item.inactive {
-  opacity: 0.4;
+.graph-summary-legend .graph-legend-reset {
+  background: var(--hpe-surface-alt);
+  border: 1px solid var(--hpe-border);
+  color: var(--hpe-text-primary);
+  border-radius: var(--hpe-radius);
+  padding: 3px 8px;
+  font-size: 11px;
+  cursor: pointer;
 }
+.graph-summary-legend .graph-legend-reset:hover { border-color: var(--hpe-brand); }
 
-.graph-legend-item.inactive .graph-legend-dot {
-  background: var(--hpe-text-weak) !important;
+/* Entrance animation: nodes/links fade+scale in on load (the "alive" wow) */
+.graph-enter {
+  animation: graphIn 450ms ease-out both;
 }
-
-.graph-legend-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  display: inline-block;
-  flex-shrink: 0;
+@keyframes graphIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+.graph-node-label {
+  transition: opacity 150ms ease;
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: var(--hpe-white);
+  stroke-width: 3px;
+  stroke-linejoin: round;
 }

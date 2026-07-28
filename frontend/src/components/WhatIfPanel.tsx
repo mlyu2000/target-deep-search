@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { GraphData, WhatIfReport, WhatIfState, AgentPersonaView } from '../types'
 import { startSimulate, connectSimulateStream, getSimulateResult } from '../api/client'
 import { buildKolReport } from '../analysis/kol'
@@ -10,6 +10,9 @@ interface Props {
   state: WhatIfState
   setState: (updater: (prev: WhatIfState) => WhatIfState) => void
   onRunComplete?: () => void
+  memoExpanded?: boolean
+  onMemoExpanded?: () => void
+  displayResult?: WhatIfReport | null
 }
 
 const TEMPLATES = (target: string) => [
@@ -31,7 +34,7 @@ function previewAgents(graph: GraphData) {
   return buildKolReport(graph, 6).ranked
 }
 
-export default function WhatIfPanel({ graph, state, setState, onRunComplete }: Props) {
+export default function WhatIfPanel({ graph, state, setState, onRunComplete, memoExpanded, onMemoExpanded, displayResult }: Props) {
   const { scenario, rounds, autoStable, running, progress, roundLabel, result, error } = state
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const target = graph.target || 'the target'
@@ -146,7 +149,16 @@ export default function WhatIfPanel({ graph, state, setState, onRunComplete }: P
       )}
       {error && <div className="whatif-error">{error}</div>}
 
-      {result && <WhatIfResult report={result} rankById={rankById} expanded={expanded} setExpanded={setExpanded} />}
+      {(result || displayResult) && (
+        <WhatIfResult
+          report={(result || displayResult) as WhatIfReport}
+          rankById={rankById}
+          expanded={expanded}
+          setExpanded={setExpanded}
+          memoExpanded={memoExpanded}
+          onMemoExpanded={onMemoExpanded}
+        />
+      )}
     </div>
   )
 }
@@ -156,16 +168,29 @@ function WhatIfResult({
   rankById,
   expanded,
   setExpanded,
+  memoExpanded,
+  onMemoExpanded,
 }: {
   report: WhatIfReport
   rankById: Map<string, number>
   expanded: Record<string, boolean>
   setExpanded: (u: Record<string, boolean>) => void
+  memoExpanded?: boolean
+  onMemoExpanded?: () => void
 }) {
   const r = report.report
   const toggle = (id: string) => setExpanded({ ...expanded, [id]: !expanded[id] })
   const [transcriptOpen, setTranscriptOpen] = useState(true)
   const [execView, setExecView] = useState(false)
+  const [memoOpen, setMemoOpen] = useState(memoExpanded ?? false)
+  // When the parent forces expansion (e.g. a saved run is selected), open the memo.
+  useEffect(() => {
+    if (memoExpanded) setMemoOpen(true)
+  }, [memoExpanded])
+  function openMemo() {
+    setMemoOpen(true)
+    onMemoExpanded?.()
+  }
   function scrollToAgent(agentName: string) {
     setTranscriptOpen(true)
     setTimeout(() => {
@@ -212,7 +237,24 @@ function WhatIfResult({
         ))}
       </div>
 
-      <MemoView report={report} onSource={(agent) => scrollToAgent(agent)} compact={execView} />
+      <div className="whatif-exec-card">
+        <span className={`whatif-exec-outcome whatif-outcome-${r.overall_outcome}`}>
+          {String(r.overall_outcome).charAt(0).toUpperCase() + String(r.overall_outcome).slice(1)}
+        </span>
+        <p className="whatif-exec-summary">{r.summary}</p>
+        {r.conflict && r.conflict.length > 0 && (
+          <div className="whatif-exec-conflict">Key conflict: {r.conflict.join(', ')}</div>
+        )}
+      </div>
+
+      <div className={`whatif-memo-block ${memoOpen ? 'open' : 'collapsed'}`}>
+        <button className="whatif-section-header" onClick={openMemo}>
+          <span className="whatif-chevron">{memoOpen ? '▾' : '▸'}</span>
+          Strategy Memo
+          {!memoOpen && <span className="whatif-memo-hint">click to expand</span>}
+        </button>
+        {memoOpen && <MemoView report={report} onSource={(agent) => scrollToAgent(agent)} compact={execView} />}
+      </div>
 
       {!execView && (
       <div className="whatif-transcript-block">

@@ -75,12 +75,44 @@ describe('WhatIfPanel', () => {
     expect(screen.getByText('Run Simulation')).toBeInTheDocument()
   })
 
+  it('strategy memo is collapsed by default and expands when memoExpanded prop is true', async () => {
+    render(<Wrapper />)
+    // Before any result, no memo header
+    expect(screen.queryByText('Strategy Memo')).toBeNull()
+    const result = {
+      scenario: 's',
+      agents: [],
+      rounds: [],
+      report: { summary: 'Contested outcome.' },
+    }
+    const withResult = (memoExpanded: boolean) =>
+      render(
+        <WhatIfPanel
+          graph={graph as any}
+          state={{ scenario: 's', rounds: 1, autoStable: false, running: false, progress: '', roundLabel: '', result: result as any, error: '' }}
+          setState={vi.fn()}
+          memoExpanded={memoExpanded}
+        />,
+      )
+    const { unmount } = withResult(false)
+    expect(screen.getByText('Strategy Memo')).toBeInTheDocument()
+    // Auto-collapsed: the memo body is not rendered, only the header.
+    expect(document.querySelector('.whatif-memo-block.collapsed')).not.toBeNull()
+    expect(document.querySelector('.whatif-exec-card')).not.toBeNull()
+    unmount()
+    withResult(true)
+    expect((await screen.findAllByText('Contested outcome.')).length).toBeGreaterThan(0)
+  })
+
   it('runs simulation, shows transcript + report, and agent detail is expandable', async () => {
     render(<Wrapper />)
     fireEvent.click(screen.getByText(/HPE is acquired by a larger competitor/))
     fireEvent.click(screen.getByText('Run Simulation'))
     await waitFor(() => expect(startSimulate).toHaveBeenCalled())
-    await waitFor(() => expect(screen.getByText('Contested outcome.')).toBeInTheDocument())
+    // Strategy Memo is auto-collapsed; expand it to see the full report.
+    fireEvent.click(await screen.findByText('Strategy Memo'))
+    // The verdict appears in both the exec card and the expanded memo; assert at least one.
+    await waitFor(() => expect(screen.getAllByText('Contested outcome.').length).toBeGreaterThan(0))
     const toggle = document.querySelector('.whatif-agent-toggle') as HTMLButtonElement
     expect(toggle).toBeTruthy()
     fireEvent.click(toggle)

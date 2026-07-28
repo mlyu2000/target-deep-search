@@ -1,5 +1,11 @@
 .search-input-container {
   display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.search-input-row {
+  display: flex;
   gap: 0;
   border-radius: var(--hpe-radius);
   overflow: hidden;
@@ -44,3 +50,29 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.search-examples {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.search-examples-label {
+  font-size: 12px;
+  color: var(--hpe-text-secondary);
+}
+.search-example-chip {
+  background: var(--hpe-surface);
+  border: 1px solid var(--hpe-border);
+  color: var(--hpe-text-primary);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background var(--hpe-transition), border-color var(--hpe-transition);
+}
+.search-example-chip:hover:not(:disabled) {
+  border-color: var(--hpe-brand);
+  background: color-mix(in srgb, var(--hpe-brand) 12%, var(--hpe-surface));
+}
+.search-example-chip:disabled { opacity: 0.5; cursor: not-allowed; }

@@ -158,6 +158,58 @@ input, select, textarea {
   min-height: 0;
 }
 
+/* Single consolidated left panel: navigation + targeted analysis (collapsible) */
+.app-left-nav {
+  width: 230px;
+  flex: 0 0 230px;
+  background: var(--hpe-surface);
+  border: 1px solid var(--hpe-border);
+  border-radius: var(--hpe-radius);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+  position: relative;
+}
+.app-analysis-layout.nav-collapsed .app-left-nav {
+  width: 44px;
+  flex: 0 0 44px;
+  padding: 8px 4px;
+  align-items: center;
+}
+.app-nav-collapse {
+  align-self: flex-end;
+  background: var(--hpe-bg);
+  border: 1px solid var(--hpe-border);
+  color: var(--hpe-text-primary);
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.app-analysis-layout.nav-collapsed .app-nav-collapse { align-self: center; }
+.app-nav-section { display: flex; flex-direction: column; gap: 4px; }
+.app-nav-section-title {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--hpe-text-secondary); margin-bottom: 4px;
+}
+.app-nav-sub { font-size: 12px; color: var(--hpe-text-secondary); margin: 0 0 6px; }
+.app-left-nav > .app-nav-section button {
+  display: block; width: 100%; text-align: left;
+  background: var(--hpe-bg); border: 1px solid transparent; color: var(--hpe-text-primary);
+  border-radius: 6px; padding: 7px 10px; cursor: pointer; font-size: 13px;
+}
+.app-left-nav > .app-nav-section button small {
+  display: block; font-size: 10px; color: var(--hpe-text-secondary); margin-top: 2px;
+}
+.app-left-nav > .app-nav-section button:hover { border-color: var(--hpe-border); }
+.app-left-nav > .app-nav-section button.active {
+  background: color-mix(in srgb, var(--hpe-accent) 16%, var(--hpe-surface));
+  border-color: var(--hpe-accent); font-weight: 600;
+}
+
 .app-analysis-main {
   flex: 1;
   display: flex;
@@ -166,25 +218,6 @@ input, select, textarea {
   gap: 12px;
   overflow-y: auto;
   padding-right: 4px;
-}
-
-.app-view-tabs {
-  display: flex;
-  gap: 8px;
-}
-.app-view-tabs button {
-  background: var(--hpe-surface);
-  border: 1px solid var(--hpe-border);
-  color: var(--hpe-text-primary);
-  border-radius: var(--hpe-radius);
-  padding: 8px 16px;
-  cursor: pointer;
-  font-size: 14px;
-}
-.app-view-tabs button.active {
-  border-color: #0070f8;
-  background: color-mix(in srgb, #0070f8 12%, var(--hpe-surface));
-  font-weight: 600;
 }
 
 /* Saved Runs panel */
@@ -325,3 +358,31 @@ input, select, textarea {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* Left nav: New search + History */
+.app-nav-newsearch {
+  width: 100%;
+  text-align: left;
+  background: var(--hpe-accent);
+  color: var(--hpe-accent-text);
+  border: none;
+  border-radius: 6px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+.app-nav-newsearch:hover { filter: brightness(0.95); }
+.app-nav-history-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.app-nav-history-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 5px 8px; border-radius: 6px; cursor: pointer;
+  font-size: 12px; color: var(--hpe-text-primary);
+}
+.app-nav-history-item:hover { background: var(--hpe-bg); }
+.app-nav-history-target { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.app-nav-history-del {
+  background: transparent; border: none; color: var(--hpe-text-secondary);
+  cursor: pointer; font-size: 14px; line-height: 1; padding: 0 2px;
+}
+.app-nav-history-del:hover { color: #c0392b; }

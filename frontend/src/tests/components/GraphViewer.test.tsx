@@ -98,10 +98,13 @@ describe('GraphViewer legend filter', () => {
       />,
     )
     await waitFor(() => expect(countCircles(container)).toBe(4))
-    expect(screen.getByText('Showing 4 / 4 entities')).toBeInTheDocument()
+    const summary = container.querySelector('.graph-summary') as HTMLElement
+    expect(summary.textContent).toMatch(/4 entities/)
+    expect(summary.textContent).toMatch(/3 relationships/)
+    expect(summary.textContent).toMatch(/4 types/)
   })
 
-  it('shows a Reset filters button only when a filter is active and resets it', async () => {
+  it('shows a Reset button only when a filter is active and resets it', async () => {
     const onReset = vi.fn()
     const { container } = render(
       <GraphViewer
@@ -115,7 +118,7 @@ describe('GraphViewer legend filter', () => {
       />,
     )
     await waitFor(() => expect(countCircles(container)).toBe(1))
-    const resetBtn = screen.getByText('Reset filters')
+    const resetBtn = screen.getByText('Reset')
     expect(resetBtn).toBeInTheDocument()
     fireEvent.click(resetBtn)
     expect(onReset).toHaveBeenCalledTimes(1)

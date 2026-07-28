@@ -134,3 +134,21 @@ class TestRunSimulation:
         # stable at round 2 -> stops, 2 round calls + 1 report
         assert len(res.rounds) == 2
         assert llm.chat_json.await_count == 3
+
+    @pytest.mark.asyncio
+    async def test_round_statements_diverge_across_rounds(self):
+        """Same agent must produce different statements in different rounds
+        (the engine varies round pressure + temperature)."""
+        personas = [AgentPersona(id="a", name="A", type="org", bio="b", persona="p")]
+        llm = MagicMock()
+        llm.chat_json = AsyncMock(side_effect=[
+            {"reaction": "support", "statement": "Opening move: we back the deal.", "new_stance": "support"},
+            {"reaction": "support", "statement": "Evolved: we now demand governance seats.", "new_stance": "support"},
+            {"reaction": "support", "statement": "Final: we commit capital contingent on audits.", "new_stance": "support"},
+            {"summary": "s", "positions": [], "agreement": [], "conflict": [], "risks": [], "overall_outcome": "support"},
+        ])
+        res = await run_simulation(personas, "What if HPE merges?", llm, rounds=3, until_stable=False, target="HPE", graph=SAMPLE_GRAPH)
+        assert len(res.rounds) == 3
+        stmts = [s["statement"] for r in res.rounds for s in r["statements"]]
+        assert len(stmts) == 3
+        assert len(set(stmts)) == 3, "each round's statement must be distinct"

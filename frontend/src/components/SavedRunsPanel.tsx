@@ -4,7 +4,7 @@ import { listSavedRuns, getSavedRun, deleteSavedRun, exportSavedRun } from '../a
 import MemoView from './MemoView'
 import CompareMemo from './CompareMemo'
 
-export default function SavedRunsPanel({ onClose }: { onClose?: () => void }) {
+export default function SavedRunsPanel({ onClose, onSelectRun }: { onClose?: () => void; onSelectRun?: (full: SavedSimRunFull) => void }) {
   const [runs, setRuns] = useState<SavedSimRunSummary[]>([])
   const [selected, setSelected] = useState<string | null>(null)
   const [full, setFull] = useState<SavedSimRunFull | null>(null)
@@ -28,6 +28,7 @@ export default function SavedRunsPanel({ onClose }: { onClose?: () => void }) {
     setSelected(id)
     const f = await getSavedRun(id)
     setFull(f)
+    onSelectRun?.(f)
   }
 
   const backToList = () => {

@@ -362,3 +362,61 @@
 .whatif-agent-detail strong {
   color: var(--hpe-text-primary);
 }
+
+/* Strategy Memo collapsible block (auto-collapsed; expands on saved-run select) */
+.whatif-memo-block {
+  border: 1px solid var(--hpe-border);
+  border-radius: 8px;
+  background: var(--hpe-surface);
+  overflow: hidden;
+}
+.whatif-section-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--hpe-bg);
+  border: none;
+  color: var(--hpe-text-primary);
+  font-weight: 600;
+  font-size: 14px;
+  padding: 10px 12px;
+  cursor: pointer;
+  text-align: left;
+}
+.whatif-section-header:hover { background: color-mix(in srgb, var(--hpe-accent) 10%, var(--hpe-surface)); }
+.whatif-memo-hint {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--hpe-text-secondary);
+  font-style: italic;
+}
+.whatif-memo-block.collapsed .whatif-section-header { border-radius: 8px; }
+
+/* Compact executive verdict card (visible without expanding the memo) */
+.whatif-exec-card {
+  border: 1px solid var(--hpe-border);
+  border-radius: 8px;
+  background: var(--hpe-surface);
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.whatif-exec-outcome {
+  align-self: flex-start;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+.whatif-outcome-contested { background: #fff4e5; color: #b45309; }
+.whatif-outcome-support { background: #e7f5ea; color: #1a7f37; }
+.whatif-outcome-oppose { background: #fdeaea; color: #c0392b; }
+.whatif-outcome-neutral { background: var(--hpe-bg); color: var(--hpe-text-secondary); }
+.whatif-exec-summary { margin: 0; font-size: 14px; color: var(--hpe-text-primary); line-height: 1.5; }
+.whatif-exec-conflict { font-size: 12px; color: var(--hpe-text-secondary); }

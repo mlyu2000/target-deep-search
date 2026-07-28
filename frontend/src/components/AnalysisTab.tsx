@@ -29,6 +29,13 @@ export default function AnalysisTab({ mode, graphData, onBack }: Props) {
         <h2 className="analysis-tab-title">{title}</h2>
         <span className="analysis-tab-note">computed from current graph</span>
       </div>
+      <p className="analysis-tab-hook">
+        {mode === 'competitive'
+          ? 'Who can help or hurt the target — and how.'
+          : mode === 'supplychain'
+            ? 'Where the target is exposed along its supply chain.'
+            : 'The few entities whose moves move the target most.'}
+      </p>
       <div className="analysis-tab-body">
         {mode === 'competitive' ? (
           <CompetitiveReport report={buildCompetitiveReport(graphData)} />
