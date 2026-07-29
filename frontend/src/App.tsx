@@ -6,15 +6,13 @@ import AdvancedSettings from './components/AdvancedSettings'
 import GraphViewer from './components/GraphViewer'
 import KeyTakeaways from './components/KeyTakeaways'
 import ResultsPanel from './components/ResultsPanel'
+import SavedRunsPanel from './components/SavedRunsPanel'
 import ProcessPanel from './components/ProcessPanel'
 import type { LogEntry } from './components/ProcessPanel'
 import ExportButton from './components/ExportButton'
-import SessionList from './components/SessionList'
 import AnalysisTab from './components/AnalysisTab'
 import WhatIfPanel from './components/WhatIfPanel'
-import SavedRunsPanel from './components/SavedRunsPanel'
-import { listSavedRuns } from './api/client'
-import { buildGraph, getResult, connectStatusStream, listSessions } from './api/client'
+import { listSavedRuns, buildGraph, getResult, connectStatusStream, listSessions } from './api/client'
 import type { GraphData, Node, Session, StatusUpdate, StageInfo, WhatIfState, WhatIfReport } from './types'
 
 export default function App() {
@@ -169,16 +167,6 @@ export default function App() {
     setSessions(res.sessions)
   }, [])
 
-  const handleClearSessions = useCallback(async () => {
-    const { clearSessions } = await import('./api/client')
-    await clearSessions()
-    setSessions([])
-    setGraphData(null)
-    setStatus('idle')
-    setActiveView('graph')
-    setActiveTypes(null)
-  }, [])
-
   const handleDeleteSession = useCallback(async (id: string) => {
     const { deleteSession } = await import('./api/client')
     await deleteSession(id)
@@ -228,13 +216,6 @@ export default function App() {
         )}
 
         <section className="app-content-section">
-          <SessionList
-            sessions={sessions}
-            onSelect={handleLoadSession}
-            onClear={handleClearSessions}
-            onDelete={handleDeleteSession}
-          />
-
           <div className="app-content-main">
             {status === 'idle' && !graphData && (
               <div className="app-empty-state">
