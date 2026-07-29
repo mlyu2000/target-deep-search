@@ -215,22 +215,8 @@ export default function App() {
         )}
 
         <section className="app-content-section">
-          <div className="app-content-main">
-            {status === 'idle' && !graphData && (
-              <div className="app-empty-state">
-                Enter a target and select depth to begin
-              </div>
-            )}
-
-            {status === 'building' && !graphData && (
-              <div className="app-building-state">
-                <div className="loading-spinner" />
-                Building&hellip; see progress below
-              </div>
-            )}
-
-            {/* Left pane is always visible on the homepage/new search so users can switch analyses quickly. */}
-            <div className={`app-analysis-layout ${navCollapsed ? 'nav-collapsed' : ''}`}>
+          {/* Left pane is always visible on the homepage/new search so users can switch analyses quickly. */}
+          <div className={`app-analysis-layout ${navCollapsed ? 'nav-collapsed' : ''}`}>
               <nav className="app-left-nav">
                   <button
                     className="app-nav-collapse"
@@ -310,6 +296,19 @@ export default function App() {
                   )}
                 </nav>
 
+                {!graphData && status === 'idle' && (
+                  <div className="app-empty-state">
+                    Enter a target and select depth to begin
+                  </div>
+                )}
+
+                {!graphData && status === 'building' && (
+                  <div className="app-building-state">
+                    <div className="loading-spinner" />
+                    Building&hellip; see progress below
+                  </div>
+                )}
+
                 {graphData && (
                 <div className="app-content-area">
                   <div className="app-analysis-main">
@@ -381,19 +380,17 @@ export default function App() {
                     />
                   )}
                 </div>
-                )}
+              )}
 
-              </div>
-
-            {selectedNode && graphData && (
-              <ResultsPanel
-                node={selectedNode}
-                graphData={graphData}
-                onClose={() => setSelectedNode(null)}
-                onNodeSelect={(node) => setSelectedNode(node)}
-              />
-            )}
-          </div>
+              {selectedNode && graphData && (
+                <ResultsPanel
+                  node={selectedNode}
+                  graphData={graphData}
+                  onClose={() => setSelectedNode(null)}
+                  onNodeSelect={(node) => setSelectedNode(node)}
+                />
+              )}
+            </div>
         </section>
 
         <ProcessPanel
