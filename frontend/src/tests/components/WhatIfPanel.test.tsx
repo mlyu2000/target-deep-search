@@ -31,7 +31,7 @@ vi.mock('../../api/client', () => {
       { round: 1, statements: [
         { round: 1, agent_id: 'a', agent_name: 'HPE', reaction: 'oppose', statement: 'We resist.', stance: 'oppose' },
         { round: 1, agent_id: 'b', agent_name: 'Dell', reaction: 'support', statement: 'We welcome.', stance: 'support' },
-      ] },
+      ]},
     ],
     report: {
       summary: 'Contested outcome.',
@@ -95,9 +95,9 @@ describe('WhatIfPanel', () => {
         />,
       )
     const { unmount } = withResult(false)
-    expect(screen.getByText('Strategy Memo')).toBeInTheDocument()
-    // Auto-collapsed: the memo body is not rendered, only the header.
-    expect(document.querySelector('.whatif-memo-block.collapsed')).not.toBeNull()
+    expect(screen.getAllByText('Strategy Memo').length).toBeGreaterThan(0)
+    // Memo body is collapsed when memoExpanded=false, but exec card is always visible above it.
+    expect(document.querySelector('.whatif-memo-body, .whatif-agent-section')).toBeNull()
     expect(document.querySelector('.whatif-exec-card')).not.toBeNull()
     unmount()
     withResult(true)
@@ -105,18 +105,24 @@ describe('WhatIfPanel', () => {
   })
 
   it('runs simulation, shows transcript + report, and agent detail is expandable', async () => {
-    render(<Wrapper />)
-    fireEvent.click(screen.getByText(/HPE is acquired by a larger competitor/))
-    fireEvent.click(screen.getByText('Run Simulation'))
-    await waitFor(() => expect(startSimulate).toHaveBeenCalled())
-    // Strategy Memo is auto-collapsed; expand it to see the full report.
-    fireEvent.click(await screen.findByText('Strategy Memo'))
-    // The verdict appears in both the exec card and the expanded memo; assert at least one.
-    await waitFor(() => expect(screen.getAllByText('Contested outcome.').length).toBeGreaterThan(0))
-    const toggle = document.querySelector('.whatif-agent-toggle') as HTMLButtonElement
-    expect(toggle).toBeTruthy()
-    fireEvent.click(toggle)
-    await waitFor(() => expect(screen.getByText(/Bio:/)).toBeInTheDocument())
-    expect(screen.getByText('We resist.')).toBeInTheDocument()
-  })
+      render(<Wrapper />)
+      fireEvent.click(screen.getByText(/HPE is acquired by a larger competitor/))
+      fireEvent.click(screen.getByText('Run Simulation'))
+      await waitFor(() => expect(startSimulate).toHaveBeenCalled())
+      // Memo auto-expands on run completion, transcript starts collapsed.
+      await waitFor(() => expect(screen.getAllByText('Strategy Memo').length).toBeGreaterThan(0))
+      const summaries = await screen.findAllByText('Contested outcome.')
+      expect(summaries.length).toBeGreaterThan(0)
+      // Transcript should start collapsed even after run completes.
+      // The actual class is .whatif-transcript (inner container), not .whatif-transcript-body
+      const transcript = document.querySelector('.whatif-transcript')
+      expect(transcript).toBeNull()
+      // Expand transcript to reveal agent statements.
+      fireEvent.click(screen.getByText('Transcript (1 rounds)'))
+      await waitFor(() => expect(screen.getByText(/We resist./)).toBeInTheDocument())
+      const toggle = document.querySelector('.whatif-agent-toggle') as HTMLButtonElement
+      expect(toggle).toBeTruthy()
+      fireEvent.click(toggle)
+      await waitFor(() => expect(screen.getByText(/Bio:/)).toBeInTheDocument())
+    })
 })

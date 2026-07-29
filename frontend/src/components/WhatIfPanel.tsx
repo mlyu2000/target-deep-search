@@ -215,17 +215,23 @@ function WhatIfResult({
 }) {
   const r = report.report
   const toggle = (id: string) => setExpanded({ ...expanded, [id]: !expanded[id] })
-  const [transcriptOpen, setTranscriptOpen] = useState(true)
+  const [transcriptOpen, setTranscriptOpen] = useState(false)
   const [execView, setExecView] = useState(false)
   const [memoOpen, setMemoOpen] = useState(memoExpanded ?? false)
+
+  // Auto-open the strategy Memo when a run completes; keep transcript collapsed.
+  useEffect(() => {
+    if (!report) return
+    setMemoOpen(true)
+    setTranscriptOpen(false)
+    onMemoExpanded?.()
+  }, [report.scenario])
+
   // When the parent forces expansion (e.g. a saved run is selected), open the memo.
   useEffect(() => {
     if (memoExpanded) setMemoOpen(true)
   }, [memoExpanded])
-  function openMemo() {
-    setMemoOpen(true)
-    onMemoExpanded?.()
-  }
+
   function scrollToAgent(agentName: string) {
     setTranscriptOpen(true)
     setTimeout(() => {
@@ -283,7 +289,7 @@ function WhatIfResult({
       </div>
 
       <div className={`whatif-memo-block ${memoOpen ? 'open' : 'collapsed'}`}>
-        <button className="whatif-section-header" onClick={openMemo}>
+        <button className="whatif-section-header" onClick={() => setMemoOpen(true)}>
           <span className="whatif-chevron">{memoOpen ? '▾' : '▸'}</span>
           Strategy Memo
           {!memoOpen && <span className="whatif-memo-hint">click to expand</span>}

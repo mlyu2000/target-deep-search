@@ -382,7 +382,7 @@ input, select, textarea {
 .app-nav-history-item:hover { background: var(--hpe-bg); }
 .app-nav-history-text { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; cursor: pointer; }
 .app-nav-history-target { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
-.app-nav-history-meta { font-size: 10px; color: var(--hpe-text-secondary); white-space: nowrap; }
+.app-nav-history-meta { font-size: 10px; color: var(--hpe-text-secondary); white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .app-nav-history-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .app-nav-history-del {
   width: 18px; height: 18px; flex: 0 0 18px;

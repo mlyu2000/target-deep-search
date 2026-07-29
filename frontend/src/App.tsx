@@ -63,7 +63,6 @@ export default function App() {
       const next = new Set(current)
       if (next.has(type)) next.delete(type)
       else next.add(type)
-      // If all types are active again, treat as "no filter"
       if (next.size === all.size) return null
       return next.size === 0 ? new Set<string>() : next
     })
@@ -93,11 +92,11 @@ export default function App() {
 
       cancelSse.current = connectStatusStream(
         task_id,
-        (update: StatusUpdate) => {
-          setStatusMessage(update.message)
-          pushLog(update.message, update.status === 'error' ? 'error' : 'info')
-          if (update.stages) setStages(update.stages)
-          if (update.status === 'error') setStatus('error')
+        (u) => {
+          setStatusMessage(u.message)
+          pushLog(u.message, u.status === 'error' ? 'error' : 'info')
+          if (u.stages) setStages(u.stages)
+          if (u.status === 'error') setStatus('error')
         },
         (err) => {
           setStatus('error')
@@ -124,7 +123,7 @@ export default function App() {
             setStatusMessage('Failed to load result')
             pushLog(`Failed to load result: ${e}`, 'error')
           }
-        },
+        }
       )
     } catch (e) {
       setStatus('error')
@@ -230,10 +229,9 @@ export default function App() {
               </div>
             )}
 
-            {graphData && (
-              <div className={`app-analysis-layout ${navCollapsed ? 'nav-collapsed' : ''}`}>
-                {/* Single consolidated left panel: navigation + targeted analysis */}
-                <nav className="app-left-nav">
+            {/* Left pane is always visible on the homepage/new search so users can switch analyses quickly. */}
+            <div className={`app-analysis-layout ${navCollapsed ? 'nav-collapsed' : ''}`}>
+              <nav className="app-left-nav">
                   <button
                     className="app-nav-collapse"
                     onClick={() => setNavCollapsed((c) => !c)}
@@ -249,6 +247,7 @@ export default function App() {
                         onClick={() => { setGraphData(null); setStatus('idle'); setActiveTypes(null); setActiveView('graph'); setStages([]); setLogs([]) }}
                       >+ New search</button>
 
+                    {graphData && (
                       <div className="app-nav-section">
                         <div className="app-nav-section-title">Explore</div>
                         <button onClick={() => setActiveView('graph')} className={activeView === 'graph' ? 'active' : ''}>Graph</button>
@@ -256,8 +255,9 @@ export default function App() {
                         <button onClick={() => setActiveView('supplychain')} className={activeView === 'supplychain' ? 'active' : ''}>Supply Chain</button>
                         <button onClick={() => setActiveView('kol')} className={activeView === 'kol' ? 'active' : ''}>KOL</button>
                         <button onClick={() => setActiveView('whatif')} className={activeView === 'whatif' ? 'active' : ''}>What-if</button>
-                        <p className="app-nav-sub">Reports are computed from the {graphData.nodes.length} entities already mapped.</p>
+                        <p className="app-nav-sub">Reports are computed from the {graphData!.nodes.length} entities already mapped.</p>
                       </div>
+                    )}
 
                       {(sessions.length > 0 || savedRuns.length > 0) && (
                         <div className="app-nav-section app-nav-history">
@@ -310,6 +310,7 @@ export default function App() {
                   )}
                 </nav>
 
+                {graphData && (
                 <div className="app-content-main">
                   <div className="app-analysis-main">
                     {activeView === 'graph' && (
@@ -380,8 +381,9 @@ export default function App() {
                     />
                   )}
                 </div>
+                )}
+
               </div>
-            )}
 
             {selectedNode && graphData && (
               <ResultsPanel
