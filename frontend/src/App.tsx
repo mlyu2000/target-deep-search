@@ -311,7 +311,7 @@ export default function App() {
                 </nav>
 
                 {graphData && (
-                <div className="app-content-main">
+                <div className="app-content-area">
                   <div className="app-analysis-main">
                     {activeView === 'graph' && (
                       <div className="app-graph-container">
