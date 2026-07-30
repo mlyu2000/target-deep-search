@@ -18,6 +18,7 @@ const DEPTH_LABELS: Record<number, string> = {
   2: 'Moderate',
   3: 'Deep',
   4: 'Comprehensive',
+  5: 'Full network',
 }
 
 interface AdvancedSettingsProps {
@@ -62,7 +63,7 @@ export default function AdvancedSettings({
               <input
                 type="range"
                 min={1}
-                max={4}
+                max={5}
                 step={1}
                 value={depth}
                 onChange={e => onDepthChange(Number(e.target.value))}
