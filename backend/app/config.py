@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     max_pages_per_depth: int = 10
     max_pages_per_entity: int = 5
     max_entities_expand: int = 5
-    max_entities_total: int = 50
+    max_entities_total: int = 200
     max_images_per_call: int = 5
     llm_request_timeout: int = 180
     crawl_request_timeout: int = 30

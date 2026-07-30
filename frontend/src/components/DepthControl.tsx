@@ -11,19 +11,20 @@ const DEPTH_LABELS: Record<number, string> = {
   2: 'Moderate',
   3: 'Deep',
   4: 'Comprehensive',
+  5: 'Full network',
 }
 
 export default function DepthControl({ value, onChange, disabled }: DepthControlProps) {
   return (
     <div className="depth-control">
       <label className="depth-label">
-        Depth: <strong>{value}</strong> — {DEPTH_LABELS[value]}
+        Depth: <strong>{value}</strong> — {DEPTH_LABELS[value] || 'Deep'}
       </label>
       <div className="depth-slider-container">
         <input
           type="range"
           min={1}
-          max={4}
+          max={5}
           step={1}
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
@@ -31,10 +32,9 @@ export default function DepthControl({ value, onChange, disabled }: DepthControl
           className="depth-slider"
         />
         <div className="depth-marks">
-          <span>1</span>
-          <span>2</span>
-          <span>3</span>
-          <span>4</span>
+          {Array.from({ length: 5 }, (_, i) => i + 1).map((d) => (
+            <span key={d}>{d}</span>
+          ))}
         </div>
       </div>
     </div>
