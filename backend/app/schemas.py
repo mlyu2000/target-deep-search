@@ -33,7 +33,7 @@ VALID_CATEGORIES = {"general", "images", "news", "videos", "blogs", "social_medi
 
 class BuildRequest(BaseModel):
     target: str = Field(min_length=1, max_length=200)
-    depth: int = Field(default=2, ge=1, le=4)
+    depth: int = Field(default=2, ge=1, le=5)
     max_pages: int = Field(default=10, ge=1, le=30)
     categories: Optional[list[str]] = None
 
@@ -57,7 +57,7 @@ class BuildRequest(BaseModel):
 
 class AnalyzeRequest(BaseModel):
     target: str = Field(min_length=1, max_length=200)
-    depth: int = Field(default=2, ge=1, le=4)
+    depth: int = Field(default=2, ge=1, le=5)
     mode: Literal["graph", "competitive", "supplychain"] = "graph"
     max_pages: int = Field(default=10, ge=1, le=30)
     categories: Optional[list[str]] = None
