@@ -10,6 +10,8 @@ def _graph(target="Microsoft", target_id="microsoft_corp"):
     mirroring the real foundation-seeded case ('Microsoft' -> 'microsoft_corp')."""
     nodes = [
         NodeSchema(id=target_id, name=target, type="organization", description="Target"),
+        # duplicate low-degree "Microsoft" node (web-extracted) must NOT be picked
+        NodeSchema(id="microsoft", name="Microsoft", type="organization", description="web"),
         NodeSchema(id="apple_inc", name="Apple", type="organization", description=""),
         NodeSchema(id="amazon_com", name="Amazon", type="organization", description=""),
         NodeSchema(id="google_al", name="Google", type="organization", description=""),
@@ -29,6 +31,7 @@ def _graph(target="Microsoft", target_id="microsoft_corp"):
         EdgeSchema(source=target_id, target="satya_nadella", type="employs", strength=5),
         EdgeSchema(source=target_id, target="windows", type="developed", strength=5),
         EdgeSchema(source="intel_corp", target="tsmc", type="supplies", strength=3),
+        # low-degree duplicate microsoft node has no edges -> resolver must ignore it
     ]
     return GraphResponse(target=target, depth=2, nodes=nodes, edges=edges)
 
