@@ -14,7 +14,7 @@
 }
 
 .header-title {
-  color: var(--hpe-text-on-dark);
+  color: var(--hpe-topbar-text);
   font-size: 1.25rem;
   font-weight: 600;
   display: flex;

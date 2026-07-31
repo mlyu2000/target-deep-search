@@ -105,10 +105,25 @@ class GraphBuilder:
 
             current_depth = 2
             while current_depth <= depth:
-                expandable = [
+                # Expansion candidates: entities prominent in the current graph.
+                # First prefer those mentioned >= 2x; if too few qualify (common
+                # after a single extraction pass), fall back to the top-N by
+                # mention_count so deeper levels still expand. Never include the
+                # root target entity itself.
+                target_id = self.llm._sanitize_id(target)
+                candidates = [
                     e for e in entities.values()
-                    if e["mention_count"] >= 2
-                ][:settings.max_entities_expand]
+                    if e["id"] != target_id and e["mention_count"] >= 2
+                ]
+                if len(candidates) < settings.max_entities_expand:
+                    fallback = [
+                        e for e in entities.values()
+                        if e["id"] != target_id and e not in candidates
+                    ]
+                    candidates += sorted(
+                        fallback, key=lambda e: e["mention_count"], reverse=True
+                    )
+                expandable = candidates[:settings.max_entities_expand]
 
                 await emit("expanding", f"Depth {current_depth}: {len(expandable)} entities qualify for expansion", current_depth, stage="expand", stages=current_stages)
 

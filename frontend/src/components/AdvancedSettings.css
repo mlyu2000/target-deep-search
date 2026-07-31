@@ -6,9 +6,9 @@
 
 .advanced-toggle {
   background: none;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  border: 1px solid var(--hpe-header-border);
   border-radius: 6px;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--hpe-header-text);
   cursor: pointer;
   font-size: 0.8rem;
   padding: 4px 12px;
@@ -23,8 +23,8 @@
 .advanced-body {
   margin-top: 12px;
   padding: 16px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: var(--hpe-header-panel);
+  border: 1px solid var(--hpe-header-border);
   border-radius: 8px;
   display: flex;
   flex-direction: column;
@@ -40,7 +40,8 @@
 .advanced-field label {
   font-size: 0.78rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--hpe-header-text);
+  opacity: 0.7;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -48,10 +49,10 @@
 .advanced-field input[type="number"] {
   width: 80px;
   padding: 6px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--hpe-header-border);
   border-radius: 6px;
-  background: rgba(0, 0, 0, 0.25);
-  color: #fff;
+  background: var(--hpe-header-input-bg);
+  color: var(--hpe-header-text);
   font-size: 0.88rem;
 }
 
@@ -67,7 +68,7 @@
   height: 4px;
   -webkit-appearance: none;
   appearance: none;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--hpe-header-border);
   border-radius: 2px;
   outline: none;
 }
@@ -80,12 +81,13 @@
   border-radius: 50%;
   background: var(--hpe-brand);
   cursor: pointer;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid var(--hpe-header-border);
 }
 
 .advanced-depth-value {
   font-size: 0.82rem;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--hpe-header-text);
+  opacity: 0.85;
   white-space: nowrap;
 }
 
@@ -100,7 +102,8 @@
   align-items: center;
   gap: 4px;
   font-size: 0.82rem;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--hpe-header-text);
+  opacity: 0.85;
   cursor: pointer;
 }
 

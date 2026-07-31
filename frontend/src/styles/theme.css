@@ -35,6 +35,10 @@
   --hpe-topbar-bg: var(--hpe-surface);
   --hpe-topbar-text: var(--hpe-text-primary);
   --hpe-topbar-border: var(--hpe-border);
+  /* Hero/Advanced panel on light bg: light surface, dark text */
+  --hpe-header-border: var(--hpe-border);
+  --hpe-header-panel: var(--hpe-surface);
+  --hpe-header-input-bg: var(--hpe-bg);
 
   /* Accent for primary CTAs / active states (light theme): deep green, white text. */
   --hpe-accent: #00875a;
@@ -66,6 +70,10 @@
   --hpe-topbar-bg: var(--hpe-dark);
   --hpe-topbar-text: #ffffff;
   --hpe-topbar-border: rgba(255, 255, 255, 0.2);
+  /* Hero/Advanced panel on dark bg: translucent dark, light text */
+  --hpe-header-border: rgba(255, 255, 255, 0.15);
+  --hpe-header-panel: rgba(255, 255, 255, 0.06);
+  --hpe-header-input-bg: rgba(0, 0, 0, 0.25);
 
   /* Accent used for primary CTAs / active states. High-contrast on dark bg. */
   --hpe-accent: #06d6a0;
