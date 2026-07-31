@@ -24,6 +24,7 @@ interface SimNode extends d3.SimulationNodeDatum {
   mention_count: number
   images?: { url: string }[]
   description: string
+  foundational?: boolean
 }
 
 interface SimLink extends d3.SimulationLinkDatum<SimNode> {
@@ -185,11 +186,24 @@ export default function GraphViewer({ data, onNodeClick, selectedNodeId, activeT
       .attr('stroke', (d) => {
         if (d.id === selectedNodeId) return 'var(--hpe-white)'
         if (kolTopIds.has(d.id)) return '#ffb020'
+        if (d.foundational) return 'var(--hpe-brand)'
         return 'none'
       })
-      .attr('stroke-width', (d) => (d.id === selectedNodeId ? 3 : kolTopIds.has(d.id) ? 4 : 0))
-      .attr('stroke-opacity', (d) => (kolTopIds.has(d.id) ? 0.95 : 1))
+      .attr('stroke-width', (d) => (d.id === selectedNodeId ? 3 : kolTopIds.has(d.id) ? 4 : d.foundational ? 2.5 : 0))
+      .attr('stroke-opacity', (d) => (kolTopIds.has(d.id) ? 0.95 : d.foundational ? 0.9 : 1))
       .attr('opacity', (d) => (selectedNodeId && d.id !== selectedNodeId) ? 0.3 : 1)
+
+    // Foundational seed nodes get a dashed outer halo so users can tell
+    // knowledge-base seeds from web-discovered entities at a glance.
+    nodeGroup.filter((d) => !!d.foundational)
+      .append('circle')
+      .attr('r', (d) => radiusOf(d) + 5)
+      .attr('fill', 'none')
+      .attr('stroke', 'var(--hpe-brand)')
+      .attr('stroke-width', 1.5)
+      .attr('stroke-dasharray', '3,3')
+      .attr('stroke-opacity', 0.7)
+      .attr('pointer-events', 'none')
 
     nodeGroup.filter((d) => (d.images?.length ?? 0) > 0)
       .append('image')
@@ -296,6 +310,12 @@ export default function GraphViewer({ data, onNodeClick, selectedNodeId, activeT
             <button type="button" className="graph-legend-reset" onClick={onResetFilters}>
               Reset
             </button>
+          )}
+          {data.nodes.some((n) => n.foundational) && (
+            <span className="graph-legend-item graph-legend-foundational" title="Seeded from base knowledge before web search">
+              <span className="graph-legend-dot graph-legend-dot-foundational" />
+              foundational
+            </span>
           )}
         </div>
       </div>

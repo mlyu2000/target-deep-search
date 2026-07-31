@@ -15,6 +15,36 @@
   color: var(--hpe-text-primary);
 }
 
+.gsum-foundation {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: color-mix(in srgb, var(--hpe-brand) 6%, var(--hpe-surface));
+  border: 1px dashed var(--hpe-brand);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 20px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--hpe-text-body);
+}
+
+.gsum-foundation-badge {
+  flex-shrink: 0;
+  background: var(--hpe-brand);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.gsum-foundation-text {
+  flex: 1;
+}
+
 .gsum-grid {
   display: flex;
   flex-direction: column;

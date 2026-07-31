@@ -38,6 +38,13 @@ export default function GraphSummary({ data }: Props) {
         (depth {data.depth}, {totalMent} total entity mentions).
       </div>
 
+      {data.foundation_summary ? (
+        <div className="gsum-foundation">
+          <span className="gsum-foundation-badge">Foundational</span>
+          <span className="gsum-foundation-text">{data.foundation_summary}</span>
+        </div>
+      ) : null}
+
       <div className="gsum-grid">
         <section className="gsum-section">
           <h3 className="gsum-section-title">Entity Composition</h3>

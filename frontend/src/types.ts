@@ -12,6 +12,7 @@ export interface Node {
   description: string
   images: ImageData[]
   mention_count: number
+  foundational?: boolean
 }
 
 export interface Edge {
@@ -31,6 +32,7 @@ export interface GraphData {
   error?: string | null
   report?: CompetitiveReport | SupplyChainReport | null
   report_type?: string | null
+  foundation_summary?: string | null
 }
 
 export interface Session {

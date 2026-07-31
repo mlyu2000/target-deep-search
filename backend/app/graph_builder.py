@@ -14,7 +14,7 @@ from app.config import settings
 logger = logging.getLogger(__name__)
 
 
-STAGE_ORDER = ["search", "fetch", "extract", "expand", "build", "done"]
+STAGE_ORDER = ["foundation", "search", "fetch", "extract", "expand", "build", "done"]
 
 
 class GraphBuilder:
@@ -57,6 +57,21 @@ class GraphBuilder:
                 await status_callback(status, message, d, **kwargs)
 
         try:
+            # Foundation stage: seed stable factual context from the model's base
+            # knowledge BEFORE web search, so canonical entities exist and web
+            # results enrich/verify rather than replace them. Detail scales with depth.
+            _set_stage("foundation", "active")
+            await emit("foundation", f"Generating foundational background for {target} (depth {depth})...", 1, stage="foundation", stages=current_stages)
+            foundation = await self.llm.generate_foundation(target, depth)
+            foundation_summary = foundation.get("summary", "")
+            if foundation["entities"]:
+                await self._merge_entities(entities, foundation["entities"], [])
+                relationships.extend(foundation["relationships"])
+                await emit("foundation", f"Seeded {len(foundation['entities'])} foundational entities, {len(foundation['relationships'])} relationships", 1, stage="foundation", stages=current_stages)
+            else:
+                await emit("foundation", "No foundational data generated (continuing with web search)", 1, stage="foundation", stages=current_stages)
+            _set_stage("foundation", "done")
+
             _set_stage("search", "active")
             cat_str = f" categories={categories}" if categories else ""
             await emit("searching", f"Searching {target}{cat_str}...", 1, stage="search", stages=current_stages)
@@ -200,6 +215,7 @@ class GraphBuilder:
                 depth=depth,
                 nodes=[NodeSchema(**e) for e in entities.values()],
                 edges=[EdgeSchema(**r) for r in relationships],
+                foundation_summary=foundation_summary,
             )
 
         except Exception as e:
@@ -312,11 +328,14 @@ class GraphBuilder:
             eid = ne["id"]
             if eid in entities:
                 entities[eid]["mention_count"] += 1
-                if ne.get("description") and len(ne["description"]) > len(entities[eid].get("description", "")):
+                if ne.get("description") and len(ne.get("description", "")) > len(entities[eid].get("description", "")):
                     entities[eid]["description"] = ne["description"]
+                if ne.get("foundational"):
+                    entities[eid]["foundational"] = True
             else:
                 ne["images"] = []
                 ne["mention_count"] = 1
+                ne.setdefault("foundational", False)
                 entities[eid] = ne
 
         for img in images:

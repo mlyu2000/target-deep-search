@@ -42,7 +42,10 @@ class TestGraphRouter:
 
     @pytest.mark.asyncio
     async def test_build_graph_invalid_depth(self, client):
-        response = await client.post("/api/graph/build", json={"target": "Tesla", "depth": 5})
+        # depth 5 is valid (new upper bound); 6 is out of range
+        ok = await client.post("/api/graph/build", json={"target": "Tesla", "depth": 5})
+        assert ok.status_code == 200
+        response = await client.post("/api/graph/build", json={"target": "Tesla", "depth": 6})
         assert response.status_code == 422
 
     @pytest.mark.asyncio

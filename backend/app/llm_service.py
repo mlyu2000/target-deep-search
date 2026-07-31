@@ -209,10 +209,90 @@ class LLMService:
         except json.JSONDecodeError as exc:
             raise ValueError(f"Failed to parse LLM JSON: {exc}")
 
+    async def generate_foundation(self, target: str, depth: int) -> dict:
+        """Generate stable, well-documented factual background about `target` from
+        the model's base knowledge (Wikipedia-equivalent training data). Detail level
+        scales with `depth` (1=brief intro .. 5=full dossier). Returns
+        {summary, entities, relationships}. These seed the graph before web enrichment.
+
+        The model may be wrong on recent/specific facts, so we instruct it to only
+        output widely-documented facts and to omit uncertain ones. Web-search mentions
+        later merge onto these seed nodes (raising mention_count), giving web-verified
+        reinforcement — the foundation is a seed, not a ground truth.
+        """
+        # Depth -> instruction profile
+        if depth <= 1:
+            detail = "a single 1-2 sentence overview identifying what the entity is."
+        elif depth == 2:
+            detail = ("a concise intro plus the key stable facts: founding year, founders, "
+                      "headquarters, current CEO/leader, and primary industry.")
+        elif depth == 3:
+            detail = ("a fuller intro plus key facts and the most notable sections: history, "
+                      "flagship products/services, and major subsidiaries or divisions.")
+        elif depth == 4:
+            detail = ("a detailed dossier: history, key people, products, subsidiaries, and "
+                      "the most notable related entities worth exploring further.")
+        else:
+            detail = ("a comprehensive dossier: full history, key people, products, "
+                      "subsidiaries, competitors, and the most notable related entities.")
+
+        system = (
+            "You are a factual knowledge base. Provide only widely-documented, stable facts "
+            "you are confident about. Never invent specifics. If uncertain about a detail, omit it. "
+            "Respond with ONLY valid JSON, no prose, no reasoning."
+        )
+        user = (
+            f'Provide foundational background on "{target}" at detail level {depth}/5: {detail}\n\n'
+            "Return ONLY valid JSON:\n"
+            "{\n"
+            '  "summary": "1-3 sentence overview of what the entity is",\n'
+            '  "entities": [\n'
+            '    {"id": "unique_slug", "name": "Full Name", "type": "person|organization|product|location|technology", "description": "Brief factual description", "foundational": true}\n'
+            "  ],\n"
+            '  "relationships": [\n'
+            '    {"source": "entity_id_1", "target": "entity_id_2", "type": "founded|acquired|partnered|competes|invested_in|supplies|employs|regulates|collaborates_with|owns|subsidiary_of|located_in|developed|uses", "strength": 4, "description": "Context"}\n'
+            "  ]\n"
+            "}\n"
+            "Include the entity itself as an organization/person node. Aim for 5-15 entities "
+            "at depth >=3 (founders, HQ city, CEO, key products, parent/sub units). "
+            "Mark every entity with foundational: true."
+        )
+
+        try:
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user},
+                ],
+                temperature=0.1,
+                max_tokens=4096,
+                timeout=self.timeout,
+            )
+            content = response.choices[0].message.content
+            if not content:
+                raise ValueError("Empty foundation response")
+            entities, relationships = self._parse_response(content)
+            # Force the foundational flag on seed entities.
+            for e in entities:
+                e["foundational"] = True
+            summary = ""
+            try:
+                m = re.search(r"\{[\s\S]*\}", content)
+                if m:
+                    data = json.loads(m.group(0))
+                    summary = data.get("summary", "")
+            except Exception:
+                pass
+            logger.info("generate_foundation target=%s depth=%d -> %d entities, %d rels",
+                         target, depth, len(entities), len(relationships))
+            return {"summary": summary, "entities": entities, "relationships": relationships}
+        except Exception as e:
+            logger.warning("generate_foundation failed for %s: %s", target, e)
+            return {"summary": "", "entities": [], "relationships": []}
+
     async def extract(self, text: str, target: str, images: list = None) -> tuple[list, list]:
         prompt = self._build_prompt(text, target, images)
-
-        logger.info("extract target=%s text_len=%d prompt_len=%d", target, len(text), len(prompt))
 
         max_retries = 2
         last_error = None

@@ -17,6 +17,7 @@ class NodeSchema(BaseModel):
     description: str = ""
     images: list[ImageSchema] = []
     mention_count: int = 1
+    foundational: bool = False
 
 
 class EdgeSchema(BaseModel):
@@ -75,6 +76,7 @@ class GraphResponse(BaseModel):
     error: Optional[str] = None
     report: Optional[dict] = None
     report_type: Optional[str] = None
+    foundation_summary: Optional[str] = None
 
 
 class StageInfo(BaseModel):

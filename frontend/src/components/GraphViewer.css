@@ -61,6 +61,14 @@
 }
 .graph-summary-legend .graph-legend-reset:hover { border-color: var(--hpe-brand); }
 
+.graph-summary-legend .graph-legend-dot-foundational {
+  background: transparent !important;
+  border: 1.5px dashed var(--hpe-brand);
+}
+
+.graph-summary-legend .graph-legend-foundational {
+  cursor: default;
+}
 /* Entrance animation: nodes/links fade+scale in on load (the "alive" wow) */
 .graph-enter {
   animation: graphIn 450ms ease-out both;

@@ -38,6 +38,7 @@ def mock_llm():
             {"source": "john_doe", "target": "target_corp", "type": "founded", "strength": 5, "description": "Founded", "source_urls": []},
         ],
     ))
+    llm.generate_foundation = AsyncMock(return_value={"summary": "", "entities": [], "relationships": []})
     llm._sanitize_id = MagicMock(side_effect=lambda x: x.lower().replace(" ", "_"))
     return llm
 
@@ -127,12 +128,13 @@ class TestGraphBuilder:
 
     @pytest.mark.asyncio
     async def test_build_caps_entities(self, builder):
+        # Generate more than max_entities_total (200) so the cap actually triggers.
         builder.llm.extract = AsyncMock(return_value=(
-            [{"id": f"entity_{i}", "name": f"Entity {i}", "type": "organization", "description": "", "images": [], "mention_count": 1} for i in range(60)],
+            [{"id": f"entity_{i}", "name": f"Entity {i}", "type": "organization", "description": "", "images": [], "mention_count": 1} for i in range(250)],
             [],
         ))
         graph = await builder.build("Target", 1)
-        assert len(graph.nodes) <= 50
+        assert len(graph.nodes) <= 200
 
     @pytest.mark.asyncio
     async def test_build_handles_llm_errors_gracefully(self, builder):

@@ -17,7 +17,7 @@ class TestBuildRequest:
     def test_depth_out_of_range_high(self):
         from app.schemas import BuildRequest
         with pytest.raises(ValidationError):
-            BuildRequest(target="Tesla", depth=5)
+            BuildRequest(target="Tesla", depth=6)
 
     def test_empty_target(self):
         from app.schemas import BuildRequest
