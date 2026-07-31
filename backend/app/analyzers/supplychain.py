@@ -15,10 +15,11 @@ class SupplyChainAnalyzer(BaseAnalyzer):
     report_type = "supplychain"
 
     async def generate_report(self, graph: GraphResponse, target: str, depth: int) -> dict:
-        target_id = self.builder.llm._sanitize_id(target)
+        target_id = self._resolve_target_id(graph, target)
         node_map = {n.id: n for n in graph.nodes}
 
         tier_1 = []
+        tier_1_map: dict = {}
         tier_2 = []
         tier_3 = []
         locations = []
@@ -26,19 +27,25 @@ class SupplyChainAnalyzer(BaseAnalyzer):
 
         for edge in graph.edges:
             if edge.source == target_id:
-                tier_1.append({
-                    "name": node_map.get(edge.target, None).name if node_map.get(edge.target) else edge.target,
+                other = edge.target
+            elif edge.target == target_id:
+                other = edge.source
+            else:
+                other = None
+            if other is None:
+                continue
+            other_node = node_map.get(other)
+            name = other_node.name if other_node else other
+            prev = tier_1_map.get(name)
+            if prev is None or edge.strength > prev["strength"]:
+                tier_1_map[name] = {
+                    "name": name,
                     "relationship": edge.type,
                     "strength": edge.strength,
                     "description": edge.description or "",
-                })
-            if edge.target == target_id:
-                tier_1.append({
-                    "name": node_map.get(edge.source, None).name if node_map.get(edge.source) else edge.source,
-                    "relationship": edge.type,
-                    "strength": edge.strength,
-                    "description": edge.description or "",
-                })
+                }
+
+        tier_1 = list(tier_1_map.values())
 
         tier_1_ids = set()
         for t in tier_1:
@@ -86,16 +93,20 @@ class SupplyChainAnalyzer(BaseAnalyzer):
         ][:10]
 
         geo_risks = []
+        seen_geo = set()
         region_counts = Counter()
         for loc in locations:
             for risk_region in RISK_LOCATIONS:
                 if risk_region in loc["name"].lower():
-                    region_counts[risk_region] += 1
-                    geo_risks.append({
-                        "region": risk_region.title(),
-                        "location": loc["name"],
-                        "count": region_counts[risk_region],
-                    })
+                    key = (risk_region, loc["name"])
+                    if key not in seen_geo:
+                        seen_geo.add(key)
+                        region_counts[risk_region] += 1
+                        geo_risks.append({
+                            "region": risk_region.title(),
+                            "location": loc["name"],
+                            "count": region_counts[risk_region],
+                        })
 
         tier_1_names = set(t["name"] for t in tier_1)
         tier_2 = [t for t in tier_2 if t["name"] not in tier_1_names][:20]

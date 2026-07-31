@@ -85,10 +85,15 @@ function betweenness(adj: Map<string, Set<string>>, ids: string[]): Map<string, 
 
 // Builds a KOL / influence ranking from an already-built graph (no extra crawl).
 export function buildKolReport(graph: GraphData, topN = 10): KolReport {
-  const ids = graph.nodes.map((n) => n.id)
-  const nameById = new Map(graph.nodes.map((n) => [n.id, n.name]))
-  const typeById = new Map(graph.nodes.map((n) => [n.id, n.type as EntityType]))
-  const mentionsById = new Map(graph.nodes.map((n) => [n.id, n.mention_count]))
+  // KOL = key opinion LEADER: only people and organizations can be KOLs.
+  // Products/technologies/locations are not opinion leaders, so exclude them
+  // (mirrors backend centrality.py fix for "product shown as KOL").
+  const kolTypes = new Set<EntityType>(['person', 'organization'])
+  const nodes = graph.nodes.filter((n) => kolTypes.has(n.type as EntityType))
+  const ids = nodes.map((n) => n.id)
+  const nameById = new Map(nodes.map((n) => [n.id, n.name]))
+  const typeById = new Map(nodes.map((n) => [n.id, n.type as EntityType]))
+  const mentionsById = new Map(nodes.map((n) => [n.id, n.mention_count]))
 
   // Adjacency (undirected, weighted by edge strength)
   const wadj = new Map<string, Map<string, number>>()

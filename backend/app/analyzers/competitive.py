@@ -23,7 +23,7 @@ class CompetitiveAnalyzer(BaseAnalyzer):
         products = []
         investors = []
 
-        target_id = self.builder.llm._sanitize_id(target)
+        target_id = self._resolve_target_id(graph, target)
         node_map = {n.id: n for n in graph.nodes}
 
         for edge in graph.edges:

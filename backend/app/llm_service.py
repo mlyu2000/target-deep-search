@@ -36,6 +36,10 @@ Rules:
 4. Only include well-supported relationships with evidence in the text
 5. Extract as many entities as possible — aim for at least 10 entities per response
 6. Do not include entities that are not related to the target
+7. For the target entity itself, do NOT invent executive titles, founder names, or
+   founding dates that are not explicitly stated in the text. If the text does not
+   state who the current CEO is, omit that claim rather than guessing. Prefer facts
+   that are widely documented and consistent with the provided foundational context.
 """
 
 
