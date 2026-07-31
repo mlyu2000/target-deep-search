@@ -65,7 +65,7 @@ class GraphBuilder:
             foundation = await self.llm.generate_foundation(target, depth)
             foundation_summary = foundation.get("summary", "")
             if foundation["entities"]:
-                await self._merge_entities(entities, foundation["entities"], [])
+                self._merge_entities(entities, foundation["entities"], [])
                 relationships.extend(foundation["relationships"])
                 await emit("foundation", f"Seeded {len(foundation['entities'])} foundational entities, {len(foundation['relationships'])} relationships", 1, stage="foundation", stages=current_stages)
             else:
