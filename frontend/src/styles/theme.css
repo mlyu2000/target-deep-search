@@ -21,15 +21,20 @@
   --hpe-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
   --hpe-transition: 200ms ease;
 
-  --hpe-header-bg: #1d1f27;
-  --hpe-header-text: #ffffff;
-
   --node-person: #0070f8;
   --node-organization: #01a982;
   --node-product: #7764fc;
   --node-location: #62e5f6;
   --node-technology: #05cc93;
   --edge-default: #b1b9be;
+
+  /* Hero banner (light theme default: light surface, dark text) */
+  --hpe-header-bg: var(--hpe-surface);
+  --hpe-header-text: var(--hpe-text-primary);
+  /* Global top app bar (light) */
+  --hpe-topbar-bg: var(--hpe-surface);
+  --hpe-topbar-text: var(--hpe-text-primary);
+  --hpe-topbar-border: var(--hpe-border);
 
   /* Accent for primary CTAs / active states (light theme): deep green, white text. */
   --hpe-accent: #00875a;
@@ -52,14 +57,18 @@
   --hpe-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
   --hpe-shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.5);
 
-  --hpe-header-bg: var(--hpe-surface);
-  --hpe-header-text: var(--hpe-text-primary);
-  --hpe-header-accent: var(--hpe-brand);
+  --edge-default: #5a6572;
+
+  /* Hero banner (dark theme: dark surface, light text) */
+  --hpe-header-bg: var(--hpe-dark);
+  --hpe-header-text: #ffffff;
+  /* Global top app bar (dark) */
+  --hpe-topbar-bg: var(--hpe-dark);
+  --hpe-topbar-text: #ffffff;
+  --hpe-topbar-border: rgba(255, 255, 255, 0.2);
 
   /* Accent used for primary CTAs / active states. High-contrast on dark bg. */
   --hpe-accent: #06d6a0;
   --hpe-accent-hover: #05b386;
   --hpe-accent-text: #06241c;
-
-  --edge-default: #5a6572;
 }

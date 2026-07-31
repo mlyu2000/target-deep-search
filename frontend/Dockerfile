@@ -7,7 +7,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
-RUN npm run build
+RUN npx vite build --mode production
 
 # Serve stage
 FROM nginx:alpine

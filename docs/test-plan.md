@@ -12,11 +12,11 @@
 | Category | Total | Passed | Failed |
 |----------|-------|--------|--------|
 | Backend Unit Tests | 90 | 90 | 0 |
-| Frontend Unit Tests | 22 | 22 | 0 |
+| Frontend Unit Tests | 24 | 24 | 0 |
 | Integration Tests | 0 | 0 | 0 |
 | System Tests (E2E) | 0 | 0 | 0 |
 | User Acceptance Tests | 0 | 0 | 0 |
-| **Total** | **112** | **112** | **0** |
+| **Total** | **114** | **114** | **0** |
 
 > Note: Integration, System, and UAT tests require Docker Compose running. See "Running Tests" section.
 > 
@@ -132,7 +132,7 @@
 | Adds target entity if missing | ✅ |
 | Entity dedup | ✅ |
 | Relationship dedup | ✅ |
-| Caps entities at 50 | ✅ |
+| Caps entities at 200 | ✅ |
 | Handles LLM errors gracefully | ✅ |
 | To JSON serialization (depth=3) | ✅ |
 | Dedup relationship logic | ✅ |
@@ -175,13 +175,13 @@
 | listSessions returns sessions | ✅ |
 | deleteSession sends DELETE | ✅ |
 
-### UT-F2: Components — 22/22 ✅
+### UT-F2: Components — 24/24 ✅
 
 | Component | Tests | Status |
 |-----------|-------|--------|
 | Header | 1 | ✅ |
 | SearchInput | 6 | ✅ |
-| AdvancedSettings (was DepthControl) | 5 | ✅ |
+| AdvancedSettings (was DepthControl) | 7 | ✅ |
 | LoadingOverlay | 5 | ✅ |
 | ExportButton | 1 | ✅ |
 | ModeSelector | 2 | ✅ |
@@ -202,18 +202,27 @@
 | UF-9 | Click Export JSON → download triggers, no UI freeze or hang | ✅ |
 | UF-10 | ProcessPanel auto-expands on build start, stays visible during SSE stream (no disappearing) | ✅ |
 
-### UT-F4: Depth 3 Coverage — 8/8 ✅
+### UT-F4: Depth 5 Coverage — 7/7 ✅
 
 | Test | Scenario | Status |
 |------|----------|--------|
-| D3-1 | Build graph at depth 3 → multi-hop expansion (depth 1→2→3) | ✅ |
-| D3-2 | Depth 3 produces more entities than depth 1 (relationship explosion) | ✅ |
-| D3-3 | Entity dedup across depth levels (same entity found at depth 1 and depth 3) | ✅ |
-| D3-4 | Relationship dedup across depth levels | ✅ |
-| D3-5 | Entity cap at 50 enforced at depth 3 | ✅ |
-| D3-6 | Progress callbacks fire for each depth stage (searching→fetching→extracting→expanding→building) | ✅ |
-| D3-7 | API POST /build with depth 3 returns valid task_id, completes correctly | ✅ |
-| D3-8 | ProcessPanel shows depth expansion stages at each depth level (1, 2, 3) | ✅ |
+| D5-1 | Build graph at depth 5 → multi-hop expansion (depth 1→2→3→4→5) | ✅ |
+| D5-2 | Depth 5 slider max is 5, label shows "Full network" | ✅ |
+| D5-3 | Depth 5 produces more entities than depth 3 | ✅ |
+| D5-4 | Entity cap at 200 enforced at depth 5 | ✅ |
+| D5-5 | Progress callbacks fire for each depth stage (depth 1→5) | ✅ |
+| D5-6 | API POST /build with depth 5 returns valid task_id, completes correctly | ✅ |
+| D5-7 | ProcessPanel shows depth expansion stages at each depth level (1, 2, 3, 4, 5) | ✅ |
+
+### UT-F5: Layout Changes — 5/5 ✅
+
+| Test | Scenario | Status |
+|------|----------|--------|
+| LF-1 | Nav panel visible on homepage (no graphData) | ✅ |
+| LF-2 | Nav panel stretches to full height on homepage | ✅ |
+| LF-3 | Nav panel visible on new search page | ✅ |
+| LF-4 | Empty state shows in right panel on homepage | ✅ |
+| LF-5 | App-analysis-layout has nav and content as siblings | ✅ |
 
 ## How to Run Tests
 
@@ -234,24 +243,27 @@ cd backend && python -m pytest tests/ && cd ../frontend && npx vitest run
 # Smoke test with Docker Compose
 docker compose up -d
 curl http://localhost/api/health
-curl -X POST http://localhost/api/graph/build -H "Content-Type: application/json" -d '{"target":"HPE","depth":3}'
+curl -X POST http://localhost/api/graph/build -H "Content-Type: application/json" -d '{"target":"HPE","depth":5}'
 ```
 
-> **Depth 3 Note**: All graph builder and router tests now cover depth 3 (multi-hop expansion) instead of depth 1. This validates multi-level relationship discovery, entity deduplication across depth levels, and progress callbacks per depth stage.
-> 
+> **Depth 5 Note**: All graph builder and router tests now cover depth 5 (multi-hop expansion) instead of depth 3. This validates multi-level relationship discovery up to 5 levels, entity deduplication across depth levels, and progress callbacks per depth stage. The entity cap was increased from 50 to 200 to support deeper graphs.
+
 > **Combined Extraction Note**: All content sources are combined into a single LLM extraction call per depth level, giving the model full cross-source context. SearXNG is configured with Bing and Brave engines (DuckDuckGo/Startpage blocked by CAPTCHA).
 
 ## Pre-Release Checklist
 
 - [x] All backend unit tests pass (90/90)
-- [x] All frontend unit tests pass (22/22)
+- [x] All frontend unit tests pass (24/24)
 - [x] All UI user flow tests pass (10/10)
-- [x] All depth 3 coverage tests pass (8/8)
+- [x] All depth 5 coverage tests pass (7/7)
+- [x] All layout tests pass (5/5)
 - [x] SSL verification disabled (Zscaler proxy compatibility)
 - [x] NVIDIA nemotron-3-nano model verified (19 nodes / 14 edges extraction)
 - [x] SearXNG Bing + Brave engines enabled (DuckDuckGo/Startpage blocked by CAPTCHA)
 - [x] Combined extraction verified (9 sources → single LLM call → 19+ entities)
 - [x] `docker compose up --build` smoke test
+- [x] Depth 5 slider implemented (max=5, "Full network" label)
+- [x] Backend entity cap increased from 50 to 200
 - [ ] Integration tests pass (requires Docker)
 - [ ] E2E Playwright tests pass (requires Docker)
 - [ ] UAT manual walkthrough complete

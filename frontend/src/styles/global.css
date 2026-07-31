@@ -75,7 +75,8 @@ input, select, textarea {
 }
 
 .app-header-section {
-  background: var(--hpe-header-bg, var(--hpe-dark));
+  background: var(--hpe-header-bg);
+  color: var(--hpe-header-text);
   padding: 32px 24px;
   display: flex;
   flex-direction: column;
@@ -86,7 +87,7 @@ input, select, textarea {
 }
 
 .app-subtitle {
-  color: var(--hpe-header-text, #ffffff);
+  color: var(--hpe-header-text);
   font-size: 1.4rem;
   font-weight: 500;
   margin: 0;

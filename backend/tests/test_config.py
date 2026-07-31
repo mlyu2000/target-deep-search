@@ -19,7 +19,7 @@ class TestConfig:
         )
         assert s.max_concurrent_fetches == 5
         assert s.max_pages_per_depth == 10
-        assert s.max_entities_total == 50
+        assert s.max_entities_total == 200
         assert s.llm_request_timeout == 180
 
     def test_key_from_env_is_required(self):

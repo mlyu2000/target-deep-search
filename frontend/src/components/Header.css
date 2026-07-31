@@ -1,5 +1,6 @@
 .header {
-  background: var(--hpe-dark);
+  background: var(--hpe-topbar-bg);
+  color: var(--hpe-topbar-text);
   padding: 0;
 }
 
@@ -33,9 +34,9 @@
 
 .theme-toggle {
   background: none;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--hpe-topbar-border);
   border-radius: 6px;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--hpe-topbar-text);
   font-size: 1.2rem;
   padding: 6px 12px;
   cursor: pointer;
