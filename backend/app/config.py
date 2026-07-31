@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     max_images_per_call: int = 5
     llm_request_timeout: int = 180
     crawl_request_timeout: int = 30
+    analysis_timeout: int = 1800
     max_extract_chars: int = 30000
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}

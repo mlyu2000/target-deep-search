@@ -83,13 +83,13 @@ async def _run_analysis(
                 builder = GraphBuilder()
                 result = await asyncio.wait_for(
                     builder.build(target, depth, emit, max_pages=max_pages, categories=categories),
-                    timeout=600.0,
+                    timeout=settings.analysis_timeout,
                 )
             else:
                 analyzer = analyzer_cls()
                 result = await asyncio.wait_for(
                     analyzer.analyze(target, depth, emit, max_pages=max_pages, categories=categories),
-                    timeout=600.0,
+                    timeout=settings.analysis_timeout,
                 )
 
             results_cache[task_id] = result
@@ -107,7 +107,7 @@ async def _run_analysis(
             session = await db.get(SessionModel, task_id)
             if session:
                 session.status = "error"
-                session.error_msg = "Analysis timed out after 600 seconds"
+                session.error_msg = f"Analysis timed out after {settings.analysis_timeout} seconds"
                 session.updated_at = datetime.utcnow()
                 await db.commit()
             await emit("error", "Analysis timed out")
