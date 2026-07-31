@@ -76,3 +76,26 @@ def test_kol_excludes_products_and_tech():
     assert "technology" not in types
     # target may be present but is an organization, fine
     assert all(m["type"] in ("person", "organization") for m in ranked)
+
+
+def test_dedup_merges_target_variants():
+    """'Microsoft' and 'Microsoft Corporation' must merge into one node
+    (legal-suffix-aware), so the target is a single canonical hub."""
+    from app.graph_builder import GraphBuilder
+    gb = GraphBuilder()
+    ents = {
+        "microsoft": {"id": "microsoft", "name": "Microsoft", "type": "organization",
+                      "description": "", "images": [], "mention_count": 3},
+        "microsoft_corp": {"id": "microsoft_corp", "name": "Microsoft Corporation", "type": "organization",
+                           "description": "A tech company", "images": [], "mention_count": 1},
+    }
+    rels = [
+        {"source": "microsoft", "target": "windows", "type": "owns", "strength": 3},
+        {"source": "microsoft_corp", "target": "bill_gates", "type": "founded", "strength": 5},
+    ]
+    merged = gb._dedup_entities(ents, rels)
+    microsoft_ids = [i for i, e in merged.items() if "microsoft" in e["name"].lower()]
+    assert len(microsoft_ids) == 1, f"expected 1 merged Microsoft node, got {microsoft_ids}"
+    canonical = merged[microsoft_ids[0]]
+    assert "Corporation" in canonical["name"], f"fuller name should win: {canonical['name']}"
+    assert canonical["mention_count"] == 4  # 3 + 1 merged

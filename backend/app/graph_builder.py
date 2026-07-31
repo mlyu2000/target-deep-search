@@ -345,16 +345,48 @@ class GraphBuilder:
                     if img_data not in entity["images"]:
                         entity["images"].append(img_data)
 
+    _LEGAL_SUFFIXES = {"inc", "inc.", "corp", "corp.", "corporation", "co", "co.",
+                       "company", "llc", "ltd", "ltd.", "limited", "group",
+                       "holdings", "plc", "ag", "sa", "nv", "bv", "gb", "usa"}
+
+    @staticmethod
+    def _norm_name(name: str) -> str:
+        """Normalize an entity name for deduplication: lowercase, drop legal
+        suffixes/punctuation so 'Microsoft', 'Microsoft Corp' and
+        'Microsoft Corporation' collapse to the same key."""
+        toks = re.findall(r"[a-z0-9]+", (name or "").lower())
+        toks = [t for t in toks if t not in GraphBuilder._LEGAL_SUFFIXES]
+        return " ".join(toks)
+
     def _dedup_entities(self, entities: dict, relationships: list) -> dict:
-        sorted_ents = sorted(entities.values(), key=lambda e: e["mention_count"], reverse=True)
+        # Prefer the fuller name as canonical (sort by name length desc, then
+        # mention count) so 'Microsoft Corporation' wins over 'Microsoft' instead
+        # of whichever happened to have more mentions.
+        sorted_ents = sorted(
+            entities.values(),
+            key=lambda e: (len(e.get("name", "")), e.get("mention_count", 0)),
+            reverse=True,
+        )
         canonical: dict[str, dict] = {}
         name_to_canonical: dict[str, str] = {}
 
         for ent in sorted_ents:
+            ent_norm = self._norm_name(ent["name"])
             matched = False
             for cid, c_ent in canonical.items():
+                c_norm = self._norm_name(c_ent["name"])
                 ratio = SequenceMatcher(None, ent["name"].lower(), c_ent["name"].lower()).ratio()
-                if ratio > 0.80:
+                # Merge when: strong fuzzy match, OR normalized forms match, OR
+                # one normalized name is a token-prefix of the other (handles
+                # 'Microsoft' vs 'Microsoft Corporation' which score <0.80).
+                prefix_match = bool(ent_norm) and bool(c_norm) and (
+                    ent_norm == c_norm
+                    or ent_norm.startswith(c_norm + " ")
+                    or c_norm.startswith(ent_norm + " ")
+                    or ent_norm.split()[0] == c_norm.split()[0]
+                    and (ent_norm in c_norm or c_norm in ent_norm)
+                )
+                if ratio > 0.80 or prefix_match:
                     c_ent["mention_count"] += ent["mention_count"]
                     if len(ent.get("description", "")) > len(c_ent.get("description", "")):
                         c_ent["description"] = ent["description"]
